@@ -1,0 +1,1326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Design Taste — Skill Builder</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --ink: #0f0e0d;
+      --paper: #f5f2ed;
+      --warm: #e8e2d9;
+      --accent: #c84b2f;
+      --accent-dim: #e8c4bb;
+      --muted: #8a8077;
+      --border: #d4cec6;
+      --green: #2d6a4f;
+      --green-dim: #b7d5c8;
+      --mono: 'DM Mono', monospace;
+      --serif: 'DM Serif Display', serif;
+      --sans: 'DM Sans', sans-serif;
+    }
+
+    html { font-size: 16px; }
+    body {
+      background: var(--paper);
+      color: var(--ink);
+      font-family: var(--sans);
+      font-weight: 300;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* ── LAYOUT ── */
+    .shell {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      min-height: 100vh;
+    }
+
+    /* ── SIDEBAR ── */
+    .sidebar {
+      background: var(--ink);
+      color: var(--paper);
+      padding: 2rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 2.5rem;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+    }
+
+    .logo {
+      font-family: var(--serif);
+      font-size: 1.4rem;
+      line-height: 1.2;
+      letter-spacing: -0.01em;
+    }
+    .logo span {
+      display: block;
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-top: 0.3rem;
+    }
+
+    .nav-section { display: flex; flex-direction: column; gap: 0.25rem; }
+    .nav-label {
+      font-family: var(--mono);
+      font-size: 0.6rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 0 0.5rem;
+      margin-bottom: 0.4rem;
+    }
+
+    .nav-btn {
+      background: none;
+      border: none;
+      color: #c8c2ba;
+      font-family: var(--sans);
+      font-size: 0.85rem;
+      font-weight: 400;
+      padding: 0.5rem 0.75rem;
+      border-radius: 6px;
+      cursor: pointer;
+      text-align: left;
+      transition: background 0.15s, color 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .nav-btn:hover { background: rgba(255,255,255,0.07); color: var(--paper); }
+    .nav-btn.active { background: rgba(255,255,255,0.12); color: var(--paper); }
+    .nav-btn .dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--muted);
+      flex-shrink: 0;
+      transition: background 0.15s;
+    }
+    .nav-btn.active .dot, .nav-btn:hover .dot { background: var(--accent); }
+
+    .profile-switcher {
+      margin-top: auto;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      padding-top: 1.5rem;
+    }
+    .profile-label {
+      font-family: var(--mono);
+      font-size: 0.6rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+    }
+    .profile-tabs {
+      display: flex;
+      gap: 0.4rem;
+    }
+    .profile-tab {
+      flex: 1;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: #c8c2ba;
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      padding: 0.4rem 0.5rem;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-align: center;
+    }
+    .profile-tab:hover { background: rgba(255,255,255,0.1); color: var(--paper); }
+    .profile-tab.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: white;
+    }
+
+    /* ── MAIN ── */
+    .main {
+      overflow-y: auto;
+    }
+
+    /* ── PANELS ── */
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    /* ── PAGE HEADER ── */
+    .page-header {
+      padding: 3rem 3rem 2rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .page-header h1 {
+      font-family: var(--serif);
+      font-size: 2rem;
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.4rem;
+    }
+    .page-header p {
+      color: var(--muted);
+      font-size: 0.9rem;
+      max-width: 520px;
+    }
+
+    /* ── ONBOARDING ── */
+    .onboarding-grid {
+      padding: 2.5rem 3rem;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      max-width: 900px;
+    }
+
+    .interview-card {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .interview-card.full { grid-column: 1 / -1; }
+
+    .card-label {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .card-q {
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: var(--ink);
+      line-height: 1.4;
+    }
+
+    .chip-group { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+    .chip {
+      background: var(--warm);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 0.3rem 0.8rem;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.15s;
+      user-select: none;
+    }
+    .chip:hover { border-color: var(--accent); color: var(--accent); }
+    .chip.selected {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: white;
+    }
+
+    textarea, input[type="text"], input[type="url"] {
+      width: 100%;
+      background: var(--warm);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.6rem 0.8rem;
+      font-family: var(--sans);
+      font-size: 0.85rem;
+      color: var(--ink);
+      resize: vertical;
+      transition: border-color 0.15s;
+      outline: none;
+    }
+    textarea:focus, input:focus { border-color: var(--accent); }
+    textarea { min-height: 80px; }
+
+    /* ── REFERENCES ── */
+    .references-wrap { padding: 2.5rem 3rem; }
+
+    .add-ref-area {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+    .add-ref-area .full { grid-column: 1 / -1; }
+
+    .field-label {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.4rem;
+    }
+
+    .drop-zone {
+      border: 2px dashed var(--border);
+      border-radius: 8px;
+      padding: 2rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: var(--warm);
+    }
+    .drop-zone:hover, .drop-zone.dragover {
+      border-color: var(--accent);
+      background: var(--accent-dim);
+    }
+    .drop-zone-text { font-size: 0.85rem; color: var(--muted); }
+    .drop-zone-text strong { color: var(--ink); }
+    .drop-zone input { display: none; }
+
+    .refs-list { display: flex; flex-direction: column; gap: 1rem; }
+
+    .ref-card {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.25rem 1.5rem;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 1rem;
+      align-items: start;
+    }
+    .ref-thumb {
+      width: 56px; height: 56px;
+      border-radius: 6px;
+      background: var(--warm);
+      border: 1px solid var(--border);
+      object-fit: cover;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+    }
+    .ref-info { display: flex; flex-direction: column; gap: 0.3rem; }
+    .ref-name { font-weight: 500; font-size: 0.9rem; }
+    .ref-url { font-family: var(--mono); font-size: 0.7rem; color: var(--muted); }
+    .ref-notes { font-size: 0.8rem; color: var(--muted); font-style: italic; }
+    .ref-tags { display: flex; gap: 0.3rem; flex-wrap: wrap; margin-top: 0.25rem; }
+    .ref-tag {
+      background: var(--warm);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 0.15rem 0.5rem;
+      font-size: 0.7rem;
+      color: var(--muted);
+    }
+    .ref-remove {
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 1rem;
+      padding: 0.2rem;
+      line-height: 1;
+      transition: color 0.15s;
+    }
+    .ref-remove:hover { color: var(--accent); }
+
+    /* ── TASTE PROFILE ── */
+    .profile-wrap { padding: 2.5rem 3rem; max-width: 780px; }
+
+    .dimension-card {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      margin-bottom: 1rem;
+      overflow: hidden;
+    }
+    .dimension-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 1.25rem;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .dimension-head:hover { background: var(--warm); }
+    .dimension-title {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-weight: 500;
+      font-size: 0.9rem;
+    }
+    .dimension-icon { font-size: 1rem; }
+    .dimension-filled {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      color: var(--green);
+      background: var(--green-dim);
+      padding: 0.2rem 0.5rem;
+      border-radius: 10px;
+    }
+    .dimension-empty {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      color: var(--muted);
+    }
+    .dimension-body {
+      padding: 0 1.25rem 1.25rem;
+      display: none;
+    }
+    .dimension-body.open { display: block; }
+    .dimension-body textarea { min-height: 70px; }
+
+    /* ── EXPORT ── */
+    .export-wrap { padding: 2.5rem 3rem; max-width: 680px; }
+
+    .export-option {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+      display: flex;
+      gap: 1.25rem;
+      align-items: flex-start;
+    }
+    .export-icon {
+      font-size: 1.5rem;
+      flex-shrink: 0;
+      margin-top: 0.1rem;
+    }
+    .export-details { flex: 1; }
+    .export-title { font-weight: 500; margin-bottom: 0.25rem; }
+    .export-desc { font-size: 0.82rem; color: var(--muted); line-height: 1.5; margin-bottom: 0.75rem; }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.55rem 1.1rem;
+      border-radius: 6px;
+      font-family: var(--sans);
+      font-size: 0.83rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+      border: none;
+    }
+    .btn-primary { background: var(--accent); color: white; }
+    .btn-primary:hover { background: #b03d24; }
+    .btn-secondary {
+      background: var(--warm);
+      color: var(--ink);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover { border-color: var(--ink); }
+    .btn-ghost { background: none; color: var(--muted); border: 1px solid var(--border); }
+    .btn-ghost:hover { color: var(--ink); border-color: var(--ink); }
+
+    .preview-box {
+      background: var(--ink);
+      color: #c8c2ba;
+      border-radius: 8px;
+      padding: 1.25rem;
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      line-height: 1.7;
+      white-space: pre-wrap;
+      word-break: break-word;
+      max-height: 320px;
+      overflow-y: auto;
+      margin-top: 0.75rem;
+    }
+    .preview-box .cm { color: var(--muted); }
+    .preview-box .key { color: #7eb8a4; }
+    .preview-box .val { color: #e8c4a0; }
+
+    /* ── STATUS BAR ── */
+    .status-bar {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      background: var(--ink);
+      color: white;
+      padding: 0.6rem 1rem;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-family: var(--mono);
+      opacity: 0;
+      transform: translateY(8px);
+      transition: all 0.25s;
+      pointer-events: none;
+      z-index: 100;
+    }
+    .status-bar.show { opacity: 1; transform: translateY(0); }
+
+    /* ── EMPTY STATE ── */
+    .empty-state {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: var(--muted);
+    }
+    .empty-state .empty-icon { font-size: 2.5rem; margin-bottom: 1rem; }
+    .empty-state p { font-size: 0.88rem; max-width: 320px; margin: 0 auto; line-height: 1.6; }
+
+    /* ── TEAM BADGE ── */
+    .team-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: #1a3a5c;
+      color: #7eb8d4;
+      border-radius: 12px;
+      padding: 0.2rem 0.6rem;
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      margin-left: 0.5rem;
+    }
+
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 2rem 0;
+    }
+
+    @media (max-width: 768px) {
+      .shell { grid-template-columns: 1fr; }
+      .sidebar { position: relative; height: auto; }
+      .onboarding-grid, .add-ref-area { grid-template-columns: 1fr; }
+      .page-header, .references-wrap, .profile-wrap, .export-wrap, .onboarding-grid { padding: 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="shell">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="logo">
+      Design Taste
+      <span>Skill Builder</span>
+    </div>
+
+    <nav class="nav-section">
+      <div class="nav-label">Build</div>
+      <button class="nav-btn active" onclick="showPanel('onboarding', this)">
+        <span class="dot"></span> Onboarding
+      </button>
+      <button class="nav-btn" onclick="showPanel('references', this)">
+        <span class="dot"></span> References
+      </button>
+      <button class="nav-btn" onclick="showPanel('profile', this)">
+        <span class="dot"></span> Taste Profile
+      </button>
+    </nav>
+
+    <nav class="nav-section">
+      <div class="nav-label">Output</div>
+      <button class="nav-btn" onclick="showPanel('export', this)">
+        <span class="dot"></span> Export Skill
+      </button>
+    </nav>
+
+    <div class="profile-switcher">
+      <div class="profile-label">Active Profile</div>
+      <div class="profile-tabs">
+        <button class="profile-tab active" id="tab-personal" onclick="switchProfile('personal')">Personal</button>
+        <button class="profile-tab" id="tab-team" onclick="switchProfile('team')">Team</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- ── ONBOARDING ── -->
+    <div class="panel active" id="panel-onboarding">
+      <div class="page-header">
+        <h1>Build your taste profile</h1>
+        <p>Answer a few questions to seed your profile. The more honest you are, the more precisely your agent will see through your eyes.</p>
+      </div>
+      <div class="onboarding-grid">
+
+        <div class="interview-card">
+          <div class="card-label">Question 01</div>
+          <div class="card-q">What's your overall visual instinct?</div>
+          <div class="chip-group" id="instinct-chips">
+            <span class="chip" onclick="toggleChip(this, 'instinct')">Less is more</span>
+            <span class="chip" onclick="toggleChip(this, 'instinct')">Rich & layered</span>
+            <span class="chip" onclick="toggleChip(this, 'instinct')">Editorial</span>
+            <span class="chip" onclick="toggleChip(this, 'instinct')">Raw / brutalist</span>
+            <span class="chip" onclick="toggleChip(this, 'instinct')">Warm & organic</span>
+            <span class="chip" onclick="toggleChip(this, 'instinct')">Cold & precise</span>
+            <span class="chip" onclick="toggleChip(this, 'instinct')">Playful</span>
+            <span class="chip" onclick="toggleChip(this, 'instinct')">Luxury</span>
+          </div>
+        </div>
+
+        <div class="interview-card">
+          <div class="card-label">Question 02</div>
+          <div class="card-q">How do you feel about white space?</div>
+          <div class="chip-group" id="space-chips">
+            <span class="chip" onclick="toggleChip(this, 'space')">Generous — let it breathe</span>
+            <span class="chip" onclick="toggleChip(this, 'space')">Balanced</span>
+            <span class="chip" onclick="toggleChip(this, 'space')">Dense — use every pixel</span>
+            <span class="chip" onclick="toggleChip(this, 'space')">Depends on context</span>
+          </div>
+        </div>
+
+        <div class="interview-card">
+          <div class="card-label">Question 03</div>
+          <div class="card-q">Typography instinct?</div>
+          <div class="chip-group" id="type-chips">
+            <span class="chip" onclick="toggleChip(this, 'type')">Serif personality</span>
+            <span class="chip" onclick="toggleChip(this, 'type')">Clean sans-serif</span>
+            <span class="chip" onclick="toggleChip(this, 'type')">Monospace character</span>
+            <span class="chip" onclick="toggleChip(this, 'type')">Big contrast in scale</span>
+            <span class="chip" onclick="toggleChip(this, 'type')">Subtle, understated</span>
+            <span class="chip" onclick="toggleChip(this, 'type')">Type as visual element</span>
+          </div>
+        </div>
+
+        <div class="interview-card">
+          <div class="card-label">Question 04</div>
+          <div class="card-q">Color philosophy?</div>
+          <div class="chip-group" id="color-chips">
+            <span class="chip" onclick="toggleChip(this, 'color')">Near-neutral with one accent</span>
+            <span class="chip" onclick="toggleChip(this, 'color')">Tonal / monochromatic</span>
+            <span class="chip" onclick="toggleChip(this, 'color')">High contrast B&W</span>
+            <span class="chip" onclick="toggleChip(this, 'color')">Rich, expressive palette</span>
+            <span class="chip" onclick="toggleChip(this, 'color')">Earthy / muted</span>
+            <span class="chip" onclick="toggleChip(this, 'color')">Vibrant & saturated</span>
+          </div>
+        </div>
+
+        <div class="interview-card full">
+          <div class="card-label">Question 05</div>
+          <div class="card-q">Name one product or website you think has exceptional design. Why does it work for you?</div>
+          <textarea id="inspiration-text" placeholder="e.g. Linear — the density is perfect, nothing feels wasted, dark mode done right, interactions have weight without being theatrical..."></textarea>
+        </div>
+
+        <div class="interview-card full">
+          <div class="card-label">Question 06</div>
+          <div class="card-q">What design trend or pattern do you actively dislike?</div>
+          <textarea id="antipattern-text" placeholder="e.g. Glassmorphism everywhere. Cards with too much border radius. Gradient purple on white. Everything looking like Notion..."></textarea>
+        </div>
+
+        <div class="interview-card full">
+          <div class="card-label">Question 07 — Optional</div>
+          <div class="card-q">Any other strong opinions about motion, interaction, or feel?</div>
+          <textarea id="motion-text" placeholder="e.g. Animations should be fast and purposeful, not theatrical. I hate page transitions that slow me down. Hover states should be instant..."></textarea>
+        </div>
+
+        <div style="grid-column: 1/-1; display:flex; gap:1rem; align-items:center;">
+          <button class="btn btn-primary" onclick="saveOnboarding()">Save & continue →</button>
+          <span style="font-size:0.8rem; color:var(--muted)">Answers are saved locally in your browser</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── REFERENCES ── -->
+    <div class="panel" id="panel-references">
+      <div class="page-header">
+        <h1>References <span id="profile-badge-refs"></span></h1>
+        <p>Share URLs or screenshots of designs that speak to you. Each one trains the agent's understanding of your taste.</p>
+      </div>
+      <div class="references-wrap">
+        <div class="add-ref-area">
+          <div>
+            <div class="field-label">URL</div>
+            <input type="url" id="ref-url" placeholder="https://linear.app" />
+          </div>
+          <div>
+            <div class="field-label">Name / Label</div>
+            <input type="text" id="ref-name" placeholder="Linear" />
+          </div>
+          <div class="full">
+            <div class="field-label">Screenshot (optional)</div>
+            <div class="drop-zone" id="drop-zone" onclick="document.getElementById('ref-file').click()" ondragover="handleDrag(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
+              <input type="file" id="ref-file" accept="image/*" onchange="handleFile(event)" />
+              <div class="drop-zone-text">
+                <strong>Click to upload</strong> or drag & drop<br>
+                PNG, JPG, WebP — any screenshot of UI you admire
+              </div>
+            </div>
+          </div>
+          <div class="full">
+            <div class="field-label">What draws you to this? What does it do right?</div>
+            <textarea id="ref-notes" placeholder="The spacing is exceptional. Every element feels considered. Nothing is decorative for decoration's sake..."></textarea>
+          </div>
+          <div class="full">
+            <div class="field-label">Taste signals (select all that apply)</div>
+            <div class="chip-group" id="ref-tags">
+              <span class="chip" onclick="toggleChip(this, 'reftag')">Minimal</span>
+              <span class="chip" onclick="toggleChip(this, 'reftag')">Dense</span>
+              <span class="chip" onclick="toggleChip(this, 'reftag')">Editorial</span>
+              <span class="chip" onclick="toggleChip(this, 'reftag')">Dark</span>
+              <span class="chip" onclick="toggleChip(this, 'reftag')">Light</span>
+              <span class="chip" onclick="toggleChip(this, 'reftag')">Serif</span>
+              <span class="chip" onclick="toggleChip(this, 'reftag')">Monospace</span>
+              <span class="chip" onclick="toggleChip(this, 'reftag')">Motion-forward</span>
+              <span class="chip" onclick="toggleChip(this, 'reftag')">Static</span>
+              <span class="chip" onclick="toggleChip(this, 'reftag')">Warm</span>
+              <span class="chip" onclick="toggleChip(this, 'reftag')">Cold</span>
+              <span class="chip" onclick="toggleChip(this, 'reftag')">Luxury</span>
+              <span class="chip" onclick="toggleChip(this, 'reftag')">Utility-first</span>
+            </div>
+          </div>
+          <div class="full" style="display:flex; gap:0.75rem;">
+            <button class="btn btn-primary" onclick="addReference()">Add reference</button>
+            <button class="btn btn-ghost" onclick="clearRefForm()">Clear</button>
+          </div>
+        </div>
+
+        <div id="refs-list" class="refs-list">
+          <div class="empty-state" id="refs-empty">
+            <div class="empty-icon">🖼</div>
+            <p>No references yet. Add a URL or screenshot of a design you admire to start building your taste profile.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── TASTE PROFILE ── -->
+    <div class="panel" id="panel-profile">
+      <div class="page-header">
+        <h1>Taste Profile <span id="profile-badge-profile"></span></h1>
+        <p>Your taste expressed across eight dimensions. Edit directly, or let it grow from your references.</p>
+      </div>
+      <div class="profile-wrap">
+        <div id="dimensions-list"></div>
+        <div style="display:flex; gap:0.75rem; margin-top:1.5rem;">
+          <button class="btn btn-primary" onclick="saveProfile()">Save profile</button>
+          <button class="btn btn-secondary" onclick="rebuildFromRefs()">↺ Rebuild from references</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── EXPORT ── -->
+    <div class="panel" id="panel-export">
+      <div class="page-header">
+        <h1>Export Skill</h1>
+        <p>Download your taste profile as a ready-to-install <code style="font-family:var(--mono); font-size:0.85em; background:var(--warm); padding:0.1em 0.4em; border-radius:3px;">.skill</code> file for Claude Code or Codex.</p>
+      </div>
+      <div class="export-wrap">
+
+        <div class="export-option">
+          <div class="export-icon">👤</div>
+          <div class="export-details">
+            <div class="export-title">Personal skill</div>
+            <div class="export-desc">Your individual taste profile. Install globally at <code style="font-family:var(--mono); font-size:0.85em;">~/.claude/skills/</code> so it's available across all your projects.</div>
+            <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+              <button class="btn btn-primary" onclick="exportSkill('personal')">↓ Download personal.skill</button>
+              <button class="btn btn-ghost" onclick="previewSkill('personal')">Preview</button>
+            </div>
+            <div id="preview-personal" class="preview-box" style="display:none;"></div>
+          </div>
+        </div>
+
+        <div class="export-option">
+          <div class="export-icon">👥</div>
+          <div class="export-details">
+            <div class="export-title">Team skill <span class="team-badge">● team</span></div>
+            <div class="export-desc">A shared taste profile for your whole team. Commit to your repo at <code style="font-family:var(--mono); font-size:0.85em;">.claude/skills/design-taste/</code> so everyone inherits the same design sensibility.</div>
+            <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+              <button class="btn btn-primary" onclick="exportSkill('team')">↓ Download team.skill</button>
+              <button class="btn btn-ghost" onclick="previewSkill('team')">Preview</button>
+            </div>
+            <div id="preview-team" class="preview-box" style="display:none;"></div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div style="background:white; border:1px solid var(--border); border-radius:10px; padding:1.25rem 1.5rem;">
+          <div style="font-weight:500; margin-bottom:0.5rem; font-size:0.9rem;">Installing in Claude Code</div>
+          <div style="font-family:var(--mono); font-size:0.72rem; line-height:2; color:var(--muted);">
+            <span style="color:var(--accent)"># Personal (global, all projects)</span><br>
+            cp design-taste.skill ~/.claude/skills/<br><br>
+            <span style="color:var(--accent)"># Team (per repo, commit to git)</span><br>
+            cp design-taste.skill ./your-project/.claude/skills/
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<div class="status-bar" id="status-bar"></div>
+
+<script>
+// ── STATE ──
+const state = {
+  activeProfile: 'personal',
+  personal: {
+    onboarding: {},
+    references: [],
+    dimensions: getDefaultDimensions(),
+    uploadedImages: {}
+  },
+  team: {
+    onboarding: {},
+    references: [],
+    dimensions: getDefaultDimensions(),
+    uploadedImages: {}
+  }
+};
+
+function getDefaultDimensions() {
+  return {
+    density: '',
+    typography: '',
+    color: '',
+    motion: '',
+    hierarchy: '',
+    components: '',
+    emotion: '',
+    avoids: ''
+  };
+}
+
+const DIMENSION_META = [
+  { key: 'density',     icon: '⬜', label: 'Density & Breathing Room',   hint: 'How much lives on screen at once. Does the design breathe or pack in?' },
+  { key: 'typography',  icon: '𝐓',  label: 'Typography',                 hint: 'Weight, scale contrast, personality. Serif vs sans vs mono. Type as voice.' },
+  { key: 'color',       icon: '◐',  label: 'Color Philosophy',            hint: 'Neutral-dominant or expressive? Warm or cool? How contrast is used.' },
+  { key: 'motion',      icon: '◎',  label: 'Motion & Interaction Feel',   hint: 'Snappy or fluid? Functional or theatrical? What interactions feel like.' },
+  { key: 'hierarchy',   icon: '▤',  label: 'Visual Hierarchy',            hint: 'How the eye is guided. What gets emphasis, and how.' },
+  { key: 'components',  icon: '▣',  label: 'Component Character',         hint: 'Sharp or soft. Flat or layered. Structured or organic. Material vs tactile.' },
+  { key: 'emotion',     icon: '◈',  label: 'Emotional Register',          hint: 'The feeling it gives off. Clinical, warm, playful, serious, luxurious, raw.' },
+  { key: 'avoids',      icon: '∅',  label: 'What It Avoids',              hint: 'Taste is also refusal. What design choices are actively rejected.' },
+];
+
+// ── LOAD / SAVE ──
+function load() {
+  try {
+    const saved = localStorage.getItem('design-taste-state');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      Object.assign(state.personal, parsed.personal || {});
+      Object.assign(state.team, parsed.team || {});
+      if (!state.personal.dimensions) state.personal.dimensions = getDefaultDimensions();
+      if (!state.team.dimensions) state.team.dimensions = getDefaultDimensions();
+      if (!state.personal.uploadedImages) state.personal.uploadedImages = {};
+      if (!state.team.uploadedImages) state.team.uploadedImages = {};
+    }
+  } catch(e) {}
+  renderAll();
+}
+
+function save() {
+  try {
+    localStorage.setItem('design-taste-state', JSON.stringify({
+      personal: state.personal,
+      team: state.team
+    }));
+  } catch(e) { toast('Storage full — images may not save'); }
+}
+
+// ── PROFILE SWITCH ──
+function switchProfile(p) {
+  state.activeProfile = p;
+  document.getElementById('tab-personal').classList.toggle('active', p === 'personal');
+  document.getElementById('tab-team').classList.toggle('active', p === 'team');
+  renderAll();
+}
+
+function profile() { return state[state.activeProfile]; }
+
+function renderAll() {
+  renderOnboarding();
+  renderRefs();
+  renderDimensions();
+  renderBadges();
+}
+
+function renderBadges() {
+  const isTeam = state.activeProfile === 'team';
+  const badge = isTeam ? '<span class="team-badge">● team</span>' : '';
+  document.getElementById('profile-badge-refs').innerHTML = badge;
+  document.getElementById('profile-badge-profile').innerHTML = badge;
+}
+
+// ── PANELS ──
+function showPanel(id, btn) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// ── CHIPS ──
+function toggleChip(el, group) {
+  el.classList.toggle('selected');
+}
+
+function getSelectedChips(containerId) {
+  return [...document.querySelectorAll(`#${containerId} .chip.selected`)].map(c => c.textContent);
+}
+
+function setSelectedChips(containerId, values) {
+  document.querySelectorAll(`#${containerId} .chip`).forEach(c => {
+    c.classList.toggle('selected', values.includes(c.textContent));
+  });
+}
+
+// ── ONBOARDING ──
+function renderOnboarding() {
+  const ob = profile().onboarding;
+  if (!ob) return;
+  setSelectedChips('instinct-chips', ob.instinct || []);
+  setSelectedChips('space-chips', ob.space || []);
+  setSelectedChips('type-chips', ob.type || []);
+  setSelectedChips('color-chips', ob.color || []);
+  document.getElementById('inspiration-text').value = ob.inspiration || '';
+  document.getElementById('antipattern-text').value = ob.antipattern || '';
+  document.getElementById('motion-text').value = ob.motion || '';
+}
+
+function saveOnboarding() {
+  profile().onboarding = {
+    instinct: getSelectedChips('instinct-chips'),
+    space: getSelectedChips('space-chips'),
+    type: getSelectedChips('type-chips'),
+    color: getSelectedChips('color-chips'),
+    inspiration: document.getElementById('inspiration-text').value,
+    antipattern: document.getElementById('antipattern-text').value,
+    motion: document.getElementById('motion-text').value
+  };
+  save();
+  toast('Onboarding saved ✓');
+  rebuildDimensionsFromOnboarding();
+}
+
+function rebuildDimensionsFromOnboarding() {
+  const ob = profile().onboarding;
+  const d = profile().dimensions;
+
+  if (ob.space?.length && !d.density) {
+    d.density = ob.space.join(', ');
+  }
+  if (ob.type?.length && !d.typography) {
+    d.typography = ob.type.join(', ');
+  }
+  if (ob.color?.length && !d.color) {
+    d.color = ob.color.join(', ');
+  }
+  if (ob.motion && !d.motion) {
+    d.motion = ob.motion;
+  }
+  if (ob.antipattern && !d.avoids) {
+    d.avoids = ob.antipattern;
+  }
+  if (ob.inspiration && !d.emotion) {
+    d.emotion = ob.inspiration;
+  }
+  renderDimensions();
+}
+
+// ── REFERENCES ──
+let pendingImageData = null;
+let pendingImageName = null;
+
+function handleFile(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  readImageFile(file);
+}
+
+function handleDrag(e) {
+  e.preventDefault();
+  document.getElementById('drop-zone').classList.add('dragover');
+}
+function handleDragLeave(e) {
+  document.getElementById('drop-zone').classList.remove('dragover');
+}
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('drop-zone').classList.remove('dragover');
+  const file = e.dataTransfer.files[0];
+  if (file && file.type.startsWith('image/')) readImageFile(file);
+}
+
+function readImageFile(file) {
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    pendingImageData = ev.target.result;
+    pendingImageName = file.name;
+    const dz = document.getElementById('drop-zone');
+    dz.innerHTML = `<img src="${pendingImageData}" style="max-height:120px; border-radius:4px; max-width:100%;" /><div class="drop-zone-text" style="margin-top:0.5rem; font-size:0.75rem;">${file.name}</div>`;
+  };
+  reader.readAsDataURL(file);
+}
+
+function addReference() {
+  const url = document.getElementById('ref-url').value.trim();
+  const name = document.getElementById('ref-name').value.trim();
+  const notes = document.getElementById('ref-notes').value.trim();
+  const tags = getSelectedChips('ref-tags');
+
+  if (!url && !name && !notes && !pendingImageData) {
+    toast('Add at least a URL or note');
+    return;
+  }
+
+  const id = Date.now().toString();
+  const ref = { id, url, name: name || url || 'Reference', notes, tags, hasImage: !!pendingImageData };
+
+  if (pendingImageData) {
+    profile().uploadedImages[id] = pendingImageData;
+  }
+
+  profile().references.unshift(ref);
+  save();
+  renderRefs();
+  clearRefForm();
+  toast('Reference added ✓');
+  updateDimensionsFromRef(ref);
+}
+
+function updateDimensionsFromRef(ref) {
+  if (!ref.notes) return;
+  const d = profile().dimensions;
+  // Simple heuristic: append notes to avoids if negative language, else emotion
+  const lower = ref.notes.toLowerCase();
+  const negWords = ['hate', 'dislike', 'avoid', "don't", 'never', 'bad', 'ugly', 'wrong'];
+  const isNegative = negWords.some(w => lower.includes(w));
+  if (isNegative) {
+    d.avoids = [d.avoids, ref.notes].filter(Boolean).join('\n\n');
+  } else {
+    d.emotion = [d.emotion, `[${ref.name || ref.url}] ${ref.notes}`].filter(Boolean).join('\n\n');
+  }
+
+  if (ref.tags.length) {
+    const tagStr = ref.tags.join(', ');
+    const positiveMap = {
+      'Minimal': 'density', 'Dense': 'density',
+      'Serif': 'typography', 'Monospace': 'typography',
+      'Motion-forward': 'motion', 'Static': 'motion',
+      'Warm': 'color', 'Cold': 'color',
+    };
+    ref.tags.forEach(t => {
+      const dim = positiveMap[t];
+      if (dim && !d[dim].includes(t)) {
+        d[dim] = [d[dim], t].filter(Boolean).join(', ');
+      }
+    });
+  }
+  renderDimensions();
+}
+
+function clearRefForm() {
+  document.getElementById('ref-url').value = '';
+  document.getElementById('ref-name').value = '';
+  document.getElementById('ref-notes').value = '';
+  document.querySelectorAll('#ref-tags .chip').forEach(c => c.classList.remove('selected'));
+  pendingImageData = null;
+  pendingImageName = null;
+  const dz = document.getElementById('drop-zone');
+  dz.innerHTML = `<input type="file" id="ref-file" accept="image/*" onchange="handleFile(event)" /><div class="drop-zone-text"><strong>Click to upload</strong> or drag & drop<br>PNG, JPG, WebP — any screenshot of UI you admire</div>`;
+}
+
+function removeRef(id) {
+  profile().references = profile().references.filter(r => r.id !== id);
+  delete profile().uploadedImages[id];
+  save();
+  renderRefs();
+  toast('Reference removed');
+}
+
+function renderRefs() {
+  const refs = profile().references;
+  const list = document.getElementById('refs-list');
+  const empty = document.getElementById('refs-empty');
+
+  if (refs.length === 0) {
+    list.innerHTML = '';
+    list.appendChild(empty);
+    empty.style.display = 'block';
+    return;
+  }
+
+  list.innerHTML = refs.map(ref => {
+    const imgSrc = ref.hasImage && profile().uploadedImages[ref.id];
+    const thumb = imgSrc
+      ? `<img class="ref-thumb" src="${imgSrc}" alt="" />`
+      : `<div class="ref-thumb">${ref.url ? '🔗' : '🖼'}</div>`;
+    const tags = ref.tags?.length
+      ? `<div class="ref-tags">${ref.tags.map(t => `<span class="ref-tag">${t}</span>`).join('')}</div>` : '';
+    return `
+      <div class="ref-card">
+        ${thumb}
+        <div class="ref-info">
+          <div class="ref-name">${ref.name}</div>
+          ${ref.url ? `<div class="ref-url">${ref.url}</div>` : ''}
+          ${ref.notes ? `<div class="ref-notes">"${ref.notes}"</div>` : ''}
+          ${tags}
+        </div>
+        <button class="ref-remove" onclick="removeRef('${ref.id}')" title="Remove">✕</button>
+      </div>`;
+  }).join('');
+}
+
+// ── TASTE PROFILE ──
+function renderDimensions() {
+  const list = document.getElementById('dimensions-list');
+  list.innerHTML = DIMENSION_META.map(dm => {
+    const val = profile().dimensions[dm.key] || '';
+    const isFilled = val.trim().length > 0;
+    return `
+      <div class="dimension-card">
+        <div class="dimension-head" onclick="toggleDim('${dm.key}')">
+          <div class="dimension-title">
+            <span class="dimension-icon">${dm.icon}</span>
+            ${dm.label}
+          </div>
+          ${isFilled
+            ? `<span class="dimension-filled">✓ filled</span>`
+            : `<span class="dimension-empty">empty</span>`}
+        </div>
+        <div class="dimension-body ${isFilled ? 'open' : ''}" id="dim-body-${dm.key}">
+          <div style="font-size:0.8rem; color:var(--muted); margin-bottom:0.5rem;">${dm.hint}</div>
+          <textarea id="dim-${dm.key}" placeholder="Describe your taste in this dimension...">${val}</textarea>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function toggleDim(key) {
+  const body = document.getElementById('dim-body-' + key);
+  body.classList.toggle('open');
+}
+
+function saveProfile() {
+  DIMENSION_META.forEach(dm => {
+    const el = document.getElementById('dim-' + dm.key);
+    if (el) profile().dimensions[dm.key] = el.value;
+  });
+  save();
+  renderDimensions();
+  toast('Taste profile saved ✓');
+}
+
+function rebuildFromRefs() {
+  // Reset dimensions and rebuild from onboarding + references
+  profile().dimensions = getDefaultDimensions();
+  rebuildDimensionsFromOnboarding();
+  profile().references.forEach(r => updateDimensionsFromRef(r));
+  renderDimensions();
+  toast('Profile rebuilt from references ✓');
+}
+
+// ── EXPORT ──
+function buildSkillMD(profileType) {
+  const p = state[profileType];
+  const ob = p.onboarding || {};
+  const dims = p.dimensions || {};
+  const refs = p.references || [];
+
+  const label = profileType === 'team' ? 'Team Design Taste' : 'Personal Design Taste';
+  const scope = profileType === 'team'
+    ? 'This is the shared team taste profile. Apply it to all UI work in this project.'
+    : 'This is a personal taste profile. It reflects one developer\'s design sensibility.';
+
+  const dimLines = DIMENSION_META.map(dm => {
+    const val = dims[dm.key]?.trim();
+    return val ? `### ${dm.label}\n${val}` : `### ${dm.label}\n*(not yet defined)*`;
+  }).join('\n\n');
+
+  const refLines = refs.length
+    ? refs.map((r, i) => {
+        const parts = [];
+        if (r.url) parts.push(`URL: ${r.url}`);
+        if (r.tags?.length) parts.push(`Signals: ${r.tags.join(', ')}`);
+        if (r.notes) parts.push(`Notes: "${r.notes}"`);
+        return `**${i+1}. ${r.name}**\n${parts.join('\n')}`;
+      }).join('\n\n')
+    : '*(no references added yet)*';
+
+  const onboardingLines = [];
+  if (ob.instinct?.length) onboardingLines.push(`- Visual instinct: ${ob.instinct.join(', ')}`);
+  if (ob.space?.length) onboardingLines.push(`- Space/density: ${ob.space.join(', ')}`);
+  if (ob.type?.length) onboardingLines.push(`- Typography: ${ob.type.join(', ')}`);
+  if (ob.color?.length) onboardingLines.push(`- Color: ${ob.color.join(', ')}`);
+  if (ob.inspiration) onboardingLines.push(`- Inspiration: ${ob.inspiration}`);
+  if (ob.antipattern) onboardingLines.push(`- Avoids: ${ob.antipattern}`);
+  if (ob.motion) onboardingLines.push(`- Motion/interaction: ${ob.motion}`);
+
+  return `---
+name: design-taste${profileType === 'team' ? '-team' : ''}
+description: >
+  ${label} profile. Use this skill whenever building UI, reviewing a design,
+  suggesting visual improvements, or evaluating whether something looks right.
+  Trigger on any request involving components, layouts, screens, colors, typography,
+  or design critique. Also trigger when the user says "add a reference" or shares
+  a screenshot or URL of a design. This tells you what good design means to
+  ${profileType === 'team' ? 'this team' : 'this person'} — not generic rules.
+---
+
+# ${label}
+
+${scope}
+
+**Your job is not to apply generic design rules. Your job is to see through ${profileType === 'team' ? "this team's" : "this person's"} eyes.**
+
+---
+
+## How to use this skill
+
+### Generate UI
+Before writing code: read the taste dimensions below. Apply them as a lens, not a checklist.
+After generating, note in 1–2 sentences which taste signals you applied and why.
+
+### Critique UI
+Evaluate against the taste dimensions. Be specific.
+Structure: **what works** / **what violates the taste** / **what to change**
+Always explain *why* something feels off, not just *that* it does.
+
+### Improve UI
+Identify the 1–3 highest-leverage changes to move toward this taste profile.
+Explain each in taste terms (e.g. "this spacing works against the preference for breathing room").
+
+### Add a reference
+Analyze the new URL or screenshot across the taste dimensions.
+Identify what it contributes beyond what's already captured.
+Update the profile by appending — do not overwrite. Note tensions if they exist.
+
+---
+
+## Taste Dimensions
+
+${dimLines}
+
+---
+
+## References (${refs.length})
+
+${refLines}
+
+---
+
+## Onboarding Answers
+
+${onboardingLines.length ? onboardingLines.join('\n') : '*(not completed)*'}
+
+---
+
+## Guiding principle
+
+Taste is personal, not universal. Do not correct or normalize this taste toward trends or conventions.
+If the profile contains tensions — name them and use context to resolve them.
+Uncertainty honestly expressed is more useful than false confidence.
+`;
+}
+
+function buildTasteProfileMD(profileType) {
+  const p = state[profileType];
+  const dims = p.dimensions || {};
+  const refs = p.references || [];
+
+  const dimLines = DIMENSION_META.map(dm => {
+    const val = dims[dm.key]?.trim();
+    return val
+      ? `## ${dm.label}\n${val}`
+      : `## ${dm.label}\n*(not yet defined)*`;
+  }).join('\n\n');
+
+  const refLines = refs.length
+    ? refs.map((r, i) => {
+        const lines = [`## Reference ${i+1} — ${r.name}`];
+        if (r.url) lines.push(`Source: ${r.url}`);
+        if (r.tags?.length) lines.push(`Signals: ${r.tags.join(', ')}`);
+        if (r.notes) lines.push(`\n"${r.notes}"`);
+        return lines.join('\n');
+      }).join('\n\n---\n\n')
+    : '*(no references added yet)*';
+
+  return `# Design Taste Profile
+> Last updated via Design Taste Skill Builder
+
+${dimLines}
+
+---
+
+## References
+
+${refLines}
+
+---
+
+## Running Synthesis
+
+*(This section should be updated by the agent after each new reference is added.)*
+`;
+}
+
+async function exportSkill(profileType) {
+  const JSZip = await loadJSZip();
+  if (!JSZip) { toast('JSZip not loaded — try again'); return; }
+
+  const zip = new JSZip();
+  zip.file('SKILL.md', buildSkillMD(profileType));
+  zip.file('references/taste-profile.md', buildTasteProfileMD(profileType));
+
+  // Include images as base64 data URIs in a manifest
+  const images = state[profileType].uploadedImages || {};
+  const imageKeys = Object.keys(images);
+  if (imageKeys.length) {
+    const manifest = imageKeys.map(id => {
+      const ref = state[profileType].references.find(r => r.id === id);
+      return `${ref?.name || id}: [base64 image — ${images[id].length} chars]`;
+    }).join('\n');
+    zip.file('references/images-manifest.txt', `# Uploaded reference images\n# (base64 data stored in taste-profile)\n\n${manifest}`);
+  }
+
+  const blob = await zip.generateAsync({ type: 'blob' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `design-taste-${profileType}.skill`;
+  a.click();
+  toast(`design-taste-${profileType}.skill downloaded ✓`);
+}
+
+function previewSkill(profileType) {
+  const box = document.getElementById(`preview-${profileType}`);
+  const isVisible = box.style.display !== 'none';
+  box.style.display = isVisible ? 'none' : 'block';
+  if (!isVisible) {
+    const content = buildSkillMD(profileType);
+    box.textContent = content;
+  }
+}
+
+async function loadJSZip() {
+  if (window.JSZip) return window.JSZip;
+  return new Promise((resolve) => {
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+    s.onload = () => resolve(window.JSZip);
+    s.onerror = () => resolve(null);
+    document.head.appendChild(s);
+  });
+}
+
+// ── TOAST ──
+function toast(msg) {
+  const bar = document.getElementById('status-bar');
+  bar.textContent = msg;
+  bar.classList.add('show');
+  clearTimeout(bar._t);
+  bar._t = setTimeout(() => bar.classList.remove('show'), 2400);
+}
+
+// ── INIT ──
+load();
+</script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir -p /Users/nikolamajkic/.claude/skills/design-taste-personal)",
+      "Read(//private/tmp/**)",
+      "Bash(cp /Users/nikolamajkic/Documents/design-taste-personal.skill design-taste-personal.zip)",
+      "Bash(unzip -o design-taste-personal.zip -d /Users/nikolamajkic/.claude/skills/design-taste-personal/)",
+      "Read(//Users/nikolamajkic/.claude/skills/**)",
+      "Bash(find /Users/nikolamajkic/Downloads/design-taste-repo /Users/nikolamajkic/design-taste -maxdepth 3 \\\\\\(-name package.json -o -name requirements.txt -o -name Pipfile -o -name pyproject.toml -o -name Makefile -o -name vite.config.* -o -name next.config.* -o -name nuxt.config.* -o -name angular.json -o -name webpack.config.* -o -name server.js -o -name app.py -o -name main.py -o -name manage.py -o -name Procfile -o -name .env* \\\\\\))",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(export NVM_DIR=\"$HOME/.nvm\")",
+      "Bash(. \"$NVM_DIR/nvm.sh\")",
+      "WebFetch(domain:www.agentation.com)",
+      "Bash(npx agentation:*)",
+      "Bash(npx agentation-mcp:*)",
+      "Bash(npm install:*)",
+      "Bash(npm audit:*)",
+      "Bash(npm run:*)",
+      "Bash(gh auth:*)",
+      "Bash(vercel --version)",
+      "Bash(git init:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
+    ]
+  }
+}
