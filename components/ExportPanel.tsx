@@ -1,12 +1,16 @@
 'use client'
 
 import { useState } from 'react'
+import { toast } from 'sonner'
 import { ProfileType } from '@/lib/types'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Separator } from '@/components/ui/separator'
 
 interface Props {
   buildSkillMD: (profileType: ProfileType) => string
   buildTasteProfileMD: (profileType: ProfileType) => string
-  toast: (msg: string) => void
 }
 
 async function loadJSZip() {
@@ -14,7 +18,7 @@ async function loadJSZip() {
   return JSZip
 }
 
-export default function ExportPanel({ buildSkillMD, buildTasteProfileMD, toast }: Props) {
+export default function ExportPanel({ buildSkillMD, buildTasteProfileMD }: Props) {
   const [previewVisible, setPreviewVisible] = useState<Record<string, boolean>>({})
 
   const togglePreview = (key: string) => {
@@ -42,55 +46,66 @@ export default function ExportPanel({ buildSkillMD, buildTasteProfileMD, toast }
       </div>
 
       <div className="export-wrap">
-        <div className="export-option">
-          <div className="export-icon">👤</div>
-          <div className="export-details">
-            <div className="export-title">Personal skill</div>
-            <div className="export-desc">
-              Your individual taste profile. Install globally at <code>~/.claude/skills/</code> so it&apos;s available across all your projects.
-            </div>
-            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-              <button className="btn btn-primary" onClick={() => exportSkill('personal')}>↓ Download personal.skill</button>
-              <button className="btn btn-ghost" onClick={() => togglePreview('personal')}>
-                {previewVisible['personal'] ? 'Hide preview' : 'Preview'}
-              </button>
-            </div>
-            {previewVisible['personal'] && (
-              <div className="preview-box">{buildSkillMD('personal')}</div>
-            )}
-          </div>
-        </div>
 
-        <div className="export-option">
-          <div className="export-icon">👥</div>
-          <div className="export-details">
-            <div className="export-title">Team skill <span className="team-badge">● team</span></div>
-            <div className="export-desc">
-              A shared taste profile for your whole team. Commit to your repo at <code>.claude/skills/design-taste/</code> so everyone inherits the same design sensibility.
+        <Card className="mb-4">
+          <CardContent className="pt-6 flex gap-5 items-start">
+            <div className="text-2xl flex-shrink-0 mt-0.5">👤</div>
+            <div className="flex-1">
+              <div className="font-medium mb-1">Personal skill</div>
+              <div className="text-sm text-muted-foreground leading-relaxed mb-3">
+                Your individual taste profile. Install globally at <code>~/.claude/skills/</code> so it&apos;s available across all your projects.
+              </div>
+              <div className="flex gap-2 flex-wrap">
+                <Button onClick={() => exportSkill('personal')}>↓ Download personal.skill</Button>
+                <Button variant="outline" onClick={() => togglePreview('personal')}>
+                  {previewVisible['personal'] ? 'Hide preview' : 'Preview'}
+                </Button>
+              </div>
+              {previewVisible['personal'] && (
+                <div className="preview-box mt-3">{buildSkillMD('personal')}</div>
+              )}
             </div>
-            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-              <button className="btn btn-primary" onClick={() => exportSkill('team')}>↓ Download team.skill</button>
-              <button className="btn btn-ghost" onClick={() => togglePreview('team')}>
-                {previewVisible['team'] ? 'Hide preview' : 'Preview'}
-              </button>
+          </CardContent>
+        </Card>
+
+        <Card className="mb-4">
+          <CardContent className="pt-6 flex gap-5 items-start">
+            <div className="text-2xl flex-shrink-0 mt-0.5">👥</div>
+            <div className="flex-1">
+              <div className="font-medium mb-1 flex items-center gap-2">
+                Team skill
+                <Badge className="bg-[#1a3a5c] text-[#7eb8d4] hover:bg-[#1a3a5c] font-mono text-[0.65rem]">● team</Badge>
+              </div>
+              <div className="text-sm text-muted-foreground leading-relaxed mb-3">
+                A shared taste profile for your whole team. Commit to your repo at <code>.claude/skills/design-taste/</code> so everyone inherits the same design sensibility.
+              </div>
+              <div className="flex gap-2 flex-wrap">
+                <Button onClick={() => exportSkill('team')}>↓ Download team.skill</Button>
+                <Button variant="outline" onClick={() => togglePreview('team')}>
+                  {previewVisible['team'] ? 'Hide preview' : 'Preview'}
+                </Button>
+              </div>
+              {previewVisible['team'] && (
+                <div className="preview-box mt-3">{buildSkillMD('team')}</div>
+              )}
             </div>
-            {previewVisible['team'] && (
-              <div className="preview-box">{buildSkillMD('team')}</div>
-            )}
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
-        <div className="divider" />
+        <Separator className="my-8" />
 
-        <div style={{ background: 'white', border: '1px solid var(--border)', borderRadius: 10, padding: '1.25rem 1.5rem' }}>
-          <div style={{ fontWeight: 500, marginBottom: '0.5rem', fontSize: '0.9rem' }}>Installing in Claude Code</div>
-          <div style={{ fontFamily: 'var(--mono)', fontSize: '0.72rem', lineHeight: 2, color: 'var(--muted)' }}>
-            <span style={{ color: 'var(--accent)' }}># Personal (global, all projects)</span><br />
-            cp design-taste.skill ~/.claude/skills/<br /><br />
-            <span style={{ color: 'var(--accent)' }}># Team (per repo, commit to git)</span><br />
-            cp design-taste.skill ./your-project/.claude/skills/
-          </div>
-        </div>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="font-medium mb-3 text-sm">Installing in Claude Code</div>
+            <div className="font-mono text-[0.72rem] leading-loose text-muted-foreground">
+              <span className="text-[var(--accent-color)]"># Personal (global, all projects)</span><br />
+              cp design-taste.skill ~/.claude/skills/<br /><br />
+              <span className="text-[var(--accent-color)]"># Team (per repo, commit to git)</span><br />
+              cp design-taste.skill ./your-project/.claude/skills/
+            </div>
+          </CardContent>
+        </Card>
+
       </div>
     </div>
   )

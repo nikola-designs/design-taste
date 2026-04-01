@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback } from 'react'
+import { toast as sonnerToast } from 'sonner'
 import {
   AppState, Profile, ProfileType, Onboarding, Reference, Dimensions,
   DIMENSION_META, getDefaultProfile
@@ -27,8 +28,6 @@ function loadFromStorage(): AppState {
 export function useDesignTaste() {
   const [activeProfile, setActiveProfile] = useState<ProfileType>('personal')
   const [appState, setAppState] = useState<AppState>(() => ({ personal: getDefaultProfile(), team: getDefaultProfile() }))
-  const [toastMsg, setToastMsg] = useState('')
-  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Load from localStorage on mount
   useEffect(() => {
@@ -39,14 +38,12 @@ export function useDesignTaste() {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
     } catch {
-      toast('Storage full — images may not save')
+      sonnerToast('Storage full — images may not save')
     }
   }, [])
 
   const toast = useCallback((msg: string) => {
-    setToastMsg(msg)
-    if (toastTimer.current) clearTimeout(toastTimer.current)
-    toastTimer.current = setTimeout(() => setToastMsg(''), 2400)
+    sonnerToast(msg)
   }, [])
 
   const profile = useCallback((): Profile => appState[activeProfile], [appState, activeProfile])
@@ -308,8 +305,6 @@ ${refLines}
     setActiveProfile,
     profile,
     appState,
-    toastMsg,
-    toast,
     saveOnboarding,
     addReference,
     removeReference,

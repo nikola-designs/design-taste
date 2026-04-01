@@ -8,7 +8,6 @@ import OnboardingPanel from '@/components/OnboardingPanel'
 import ReferencesPanel from '@/components/ReferencesPanel'
 import TasteProfilePanel from '@/components/TasteProfilePanel'
 import ExportPanel from '@/components/ExportPanel'
-import StatusBar from '@/components/StatusBar'
 
 export default function Home() {
   const [activePanel, setActivePanel] = useState<Panel>('onboarding')
@@ -16,8 +15,6 @@ export default function Home() {
     activeProfile,
     setActiveProfile,
     profile,
-    toastMsg,
-    toast,
     saveOnboarding,
     addReference,
     removeReference,
@@ -77,12 +74,9 @@ export default function Home() {
           <ExportPanel
             buildSkillMD={buildSkillMD}
             buildTasteProfileMD={buildTasteProfileMD}
-            toast={toast}
           />
         )}
       </main>
-
-      <StatusBar message={toastMsg} />
     </div>
   )
 }

@@ -24,7 +24,16 @@
       "Bash(printf .DS_Storen*.skillnnode_modules/n.next/nout/n.envn.env*.localnnpm-debug.log*n)",
       "Bash(git -C /Users/nikolamajkic/Downloads/design-taste-repo rm -r --cached .next/ node_modules/)",
       "Bash(git -C /Users/nikolamajkic/Downloads/design-taste-repo add .)",
-      "Bash(git -C /Users/nikolamajkic/Downloads/design-taste-repo commit -m \"Fix .gitignore — exclude .next and node_modules\")"
+      "Bash(git -C /Users/nikolamajkic/Downloads/design-taste-repo commit -m \"Fix .gitignore — exclude .next and node_modules\")",
+      "Bash(vercel --yes)",
+      "Bash(vercel login:*)",
+      "Bash(npx shadcn@latest add button card badge input textarea separator sonner --yes)",
+      "Bash(/Users/nikolamajkic/Downloads/design-taste-repo/components.json:*)",
+      "Bash(npx shadcn@latest add button --yes)",
+      "Bash(npx shadcn@latest --version)",
+      "Bash(npx shadcn@latest add card badge input textarea separator sonner --yes)",
+      "Bash(npm ls:*)",
+      "Bash(/Users/nikolamajkic/Downloads/design-taste-repo/lib/utils.ts:*)"
     ]
   }
 }
