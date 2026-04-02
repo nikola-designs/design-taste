@@ -17,6 +17,7 @@ interface Props {
   isTeam: boolean
   onAdd: (ref: Omit<Reference, 'id'>, imageData?: string) => void
   onRemove: (id: string) => void
+  onUpdateNotes: (id: string, notes: string) => void
 }
 
 interface BatchItem {
@@ -38,7 +39,7 @@ async function analyzeImage(imageData: string, name: string): Promise<string> {
   return json.description ?? ''
 }
 
-export default function ReferencesPanel({ references, uploadedImages, isTeam, onAdd, onRemove }: Props) {
+export default function ReferencesPanel({ references, uploadedImages, isTeam, onAdd, onRemove, onUpdateNotes }: Props) {
   const [url, setUrl] = useState('')
   const [name, setName] = useState('')
   const [notes, setNotes] = useState('')
@@ -47,6 +48,8 @@ export default function ReferencesPanel({ references, uploadedImages, isTeam, on
   const [imageName, setImageName] = useState<string | null>(null)
   const [isDragOver, setIsDragOver] = useState(false)
   const [analyzing, setAnalyzing] = useState(false)
+  const [analysisFailed, setAnalysisFailed] = useState(false)
+  const [reanalyzing, setReanalyzing] = useState<string | null>(null)
 
   // Batch mode
   const [batchItems, setBatchItems] = useState<BatchItem[]>([])
@@ -71,15 +74,29 @@ export default function ReferencesPanel({ references, uploadedImages, isTeam, on
     setImageName(file.name)
     setBatchItems([])
     setNotes('')
+    setAnalysisFailed(false)
     setAnalyzing(true)
     try {
       const label = name || file.name.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ')
       const description = await analyzeImage(data, label)
       setNotes(description)
     } catch {
-      // silently fail — user can type notes manually
+      setAnalysisFailed(true)
     } finally {
       setAnalyzing(false)
+    }
+  }
+
+  /** Re-analyse an already-saved reference */
+  const handleReanalyze = async (refId: string, imgSrc: string, refName: string) => {
+    setReanalyzing(refId)
+    try {
+      const description = await analyzeImage(imgSrc, refName)
+      onUpdateNotes(refId, description)
+    } catch {
+      // leave notes unchanged
+    } finally {
+      setReanalyzing(null)
     }
   }
 
@@ -329,6 +346,9 @@ export default function ReferencesPanel({ references, uploadedImages, isTeam, on
                       {!analyzing && notes && imageData && (
                         <span className="analysis-badge done">✓ AI analysed — edit freely</span>
                       )}
+                      {!analyzing && analysisFailed && (
+                        <span className="analysis-badge error">⚠ Analysis failed — check API key or type manually</span>
+                      )}
                     </div>
                     <Textarea
                       value={notes}
@@ -422,7 +442,30 @@ export default function ReferencesPanel({ references, uploadedImages, isTeam, on
                     <div className="flex flex-col gap-1">
                       <div className="font-medium text-sm">{ref.name}</div>
                       {ref.url && <div className="font-mono text-[0.7rem] text-muted-foreground">{ref.url}</div>}
-                      {ref.notes && <div className="text-[0.8rem] text-muted-foreground italic leading-relaxed">&ldquo;{ref.notes}&rdquo;</div>}
+                      {ref.notes
+                        ? <div className="text-[0.8rem] text-muted-foreground italic leading-relaxed">&ldquo;{ref.notes}&rdquo;</div>
+                        : imgSrc && (
+                          <div className="flex items-center gap-1.5 mt-0.5">
+                            <span className="text-[0.75rem] text-[var(--muted-color)]">No analysis yet</span>
+                            <button
+                              className="reanalyze-btn"
+                              disabled={reanalyzing === ref.id}
+                              onClick={() => handleReanalyze(ref.id, imgSrc, ref.name)}
+                            >
+                              {reanalyzing === ref.id ? '✦ Analysing…' : '✦ Analyse now'}
+                            </button>
+                          </div>
+                        )
+                      }
+                      {ref.notes && imgSrc && (
+                        <button
+                          className="reanalyze-btn mt-0.5 w-fit"
+                          disabled={reanalyzing === ref.id}
+                          onClick={() => handleReanalyze(ref.id, imgSrc, ref.name)}
+                        >
+                          {reanalyzing === ref.id ? '✦ Re-analysing…' : '↺ Re-analyse'}
+                        </button>
+                      )}
                       {ref.tags?.length > 0 && (
                         <div className="flex gap-1 flex-wrap mt-1">
                           {ref.tags.map(t => (

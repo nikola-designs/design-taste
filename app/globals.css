@@ -611,6 +611,26 @@ body {
   background: var(--green-dim);
   color: var(--green);
 }
+.analysis-badge.error {
+  background: oklch(96% 0.03 40);
+  color: oklch(50% 0.12 40);
+}
+
+/* Re-analyse button */
+.reanalyze-btn {
+  background: none;
+  border: none;
+  font-family: var(--sans);
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--teal);
+  cursor: pointer;
+  padding: 0;
+  transition: opacity 0.15s;
+  text-align: left;
+}
+.reanalyze-btn:hover { opacity: 0.75; }
+.reanalyze-btn:disabled { opacity: 0.5; cursor: default; }
 
 @keyframes pulse-text {
   0%, 100% { opacity: 1; }

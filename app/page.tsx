@@ -16,6 +16,7 @@ export default function Home() {
     saveOnboarding,
     addReference,
     removeReference,
+    updateReferenceNotes,
     saveDimensions,
     rebuildFromRefs,
     buildSkillMD,
@@ -58,6 +59,7 @@ export default function Home() {
             isTeam={isTeam}
             onAdd={addReference}
             onRemove={removeReference}
+            onUpdateNotes={updateReferenceNotes}
           />
         </section>
 

@@ -118,6 +118,13 @@ export function useDesignTaste() {
     toast('Reference removed')
   }, [updateProfile, toast])
 
+  const updateReferenceNotes = useCallback((id: string, notes: string) => {
+    updateProfile(p => ({
+      ...p,
+      references: p.references.map(r => r.id === id ? { ...r, notes } : r),
+    }))
+  }, [updateProfile])
+
   // ── PROFILE DIMENSIONS ──
   const saveDimensions = useCallback((dims: Dimensions) => {
     updateProfile(p => ({ ...p, dimensions: dims }))
@@ -177,12 +184,13 @@ export function useDesignTaste() {
 
     const refLines = refs.length
       ? refs.map((r, i) => {
-          const parts: string[] = []
-          if (r.url) parts.push(`URL: ${r.url}`)
-          if (r.tags?.length) parts.push(`Signals: ${r.tags.join(', ')}`)
-          if (r.notes) parts.push(`Notes: "${r.notes}"`)
-          return `**${i + 1}. ${r.name}**\n${parts.join('\n')}`
-        }).join('\n\n')
+          const lines: string[] = [`### ${i + 1}. ${r.name}`]
+          if (r.url) lines.push(`**Source:** ${r.url}`)
+          if (r.tags?.length) lines.push(`**Signals:** ${r.tags.join(', ')}`)
+          if (r.notes) lines.push(`\n**Design analysis:**\n${r.notes}`)
+          else lines.push(`\n**Design analysis:** *(not yet analysed)*`)
+          return lines.join('\n')
+        }).join('\n\n---\n\n')
       : '*(no references added yet)*'
 
     const onboardingLines: string[] = []
@@ -308,6 +316,7 @@ ${refLines}
     saveOnboarding,
     addReference,
     removeReference,
+    updateReferenceNotes,
     saveDimensions,
     rebuildFromRefs,
     buildSkillMD,
