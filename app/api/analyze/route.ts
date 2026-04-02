@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
     const mimeType = header.match(/data:(image\/[\w+]+)/)?.[1] ?? 'image/jpeg'
 
     const genAI = new GoogleGenerativeAI(apiKey)
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' })
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
 
     const prompt = name
       ? `${SYSTEM_PROMPT}\n\nAnalyse this UI screenshot labeled "${name}" for design taste signals.`
@@ -45,8 +45,9 @@ export async function POST(req: NextRequest) {
 
     const description = result.response.text().trim()
     return NextResponse.json({ description })
-  } catch (err) {
-    console.error('Analyze error:', err)
-    return NextResponse.json({ error: 'Analysis failed' }, { status: 500 })
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err)
+    console.error('Analyze error:', msg)
+    return NextResponse.json({ error: msg }, { status: 500 })
   }
 }
