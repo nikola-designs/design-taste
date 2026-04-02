@@ -10,8 +10,6 @@ import ExportPanel from '@/components/ExportPanel'
 
 export default function Home() {
   const {
-    activeProfile,
-    setActiveProfile,
     profile,
     saveOnboarding,
     addReference,
@@ -23,15 +21,12 @@ export default function Home() {
     buildTasteProfileMD,
   } = useDesignTaste()
 
-  const p = profile()
-  const isTeam = activeProfile === 'team'
-
   const scrollTo = (id: string) =>
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 
   return (
     <>
-      <Header activeProfile={activeProfile} onProfile={setActiveProfile} />
+      <Header />
 
       <main className="site-main">
 
@@ -39,13 +34,11 @@ export default function Home() {
 
         <section id="onboarding" className="page-section">
           <OnboardingPanel
-            key={activeProfile}
-            initial={p.onboarding}
+            initial={profile.onboarding}
             onSave={(ob) => {
               saveOnboarding(ob)
               setTimeout(() => scrollTo('references'), 80)
             }}
-            isTeam={isTeam}
           />
         </section>
 
@@ -53,10 +46,8 @@ export default function Home() {
 
         <section id="references" className="page-section">
           <ReferencesPanel
-            key={activeProfile}
-            references={p.references}
-            uploadedImages={p.uploadedImages}
-            isTeam={isTeam}
+            references={profile.references}
+            uploadedImages={profile.uploadedImages}
             onAdd={addReference}
             onRemove={removeReference}
             onUpdateNotes={updateReferenceNotes}
@@ -67,9 +58,8 @@ export default function Home() {
 
         <section id="profile" className="page-section">
           <TasteProfilePanel
-            key={`${activeProfile}-${JSON.stringify(p.dimensions)}`}
-            dimensions={p.dimensions}
-            isTeam={isTeam}
+            key={JSON.stringify(profile.dimensions)}
+            dimensions={profile.dimensions}
             onSave={saveDimensions}
             onRebuild={rebuildFromRefs}
           />

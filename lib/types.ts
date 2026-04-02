@@ -1,5 +1,3 @@
-export type ProfileType = 'personal' | 'team'
-
 export type Panel = 'onboarding' | 'references' | 'profile' | 'export'
 
 export interface Onboarding {
@@ -41,7 +39,6 @@ export interface Profile {
 
 export interface AppState {
   personal: Profile
-  team: Profile
 }
 
 export const DIMENSION_META: {

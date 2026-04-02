@@ -10,7 +10,6 @@ import { Textarea } from '@/components/ui/textarea'
 interface Props {
   initial: Onboarding
   onSave: (ob: Onboarding) => void
-  isTeam: boolean
 }
 
 function ChipGroup({ options, selected, onChange }: {

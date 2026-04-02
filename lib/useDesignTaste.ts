@@ -3,58 +3,54 @@
 import { useState, useEffect, useCallback } from 'react'
 import { toast as sonnerToast } from 'sonner'
 import {
-  AppState, Profile, ProfileType, Onboarding, Reference, Dimensions,
+  AppState, Profile, Onboarding, Reference, Dimensions,
   DIMENSION_META, getDefaultProfile
 } from './types'
 
 const STORAGE_KEY = 'design-taste-state'
 
-function loadFromStorage(): AppState {
-  if (typeof window === 'undefined') return { personal: getDefaultProfile(), team: getDefaultProfile() }
+function loadFromStorage(): Profile {
+  if (typeof window === 'undefined') return getDefaultProfile()
   try {
     const saved = localStorage.getItem(STORAGE_KEY)
-    if (!saved) return { personal: getDefaultProfile(), team: getDefaultProfile() }
+    if (!saved) return getDefaultProfile()
     const parsed = JSON.parse(saved)
-    const personal = { ...getDefaultProfile(), ...parsed.personal }
-    const team = { ...getDefaultProfile(), ...parsed.team }
-    if (!personal.uploadedImages) personal.uploadedImages = {}
-    if (!team.uploadedImages) team.uploadedImages = {}
-    return { personal, team }
+    // Support both old { personal, team } shape and new flat shape
+    const raw = parsed.personal ?? parsed
+    const profile = { ...getDefaultProfile(), ...raw }
+    if (!profile.uploadedImages) profile.uploadedImages = {}
+    return profile
   } catch {
-    return { personal: getDefaultProfile(), team: getDefaultProfile() }
+    return getDefaultProfile()
   }
 }
 
 export function useDesignTaste() {
-  const [activeProfile, setActiveProfile] = useState<ProfileType>('personal')
-  const [appState, setAppState] = useState<AppState>(() => ({ personal: getDefaultProfile(), team: getDefaultProfile() }))
+  const [profile, setProfile] = useState<Profile>(() => getDefaultProfile())
 
-  // Load from localStorage on mount
   useEffect(() => {
-    setAppState(loadFromStorage())
+    setProfile(loadFromStorage())
   }, [])
 
-  const saveToStorage = useCallback((state: AppState) => {
+  const saveToStorage = useCallback((p: Profile) => {
     try {
+      // Keep legacy shape so old data still loads if needed
+      const state: AppState = { personal: p }
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
     } catch {
       sonnerToast('Storage full — images may not save')
     }
   }, [])
 
-  const toast = useCallback((msg: string) => {
-    sonnerToast(msg)
-  }, [])
-
-  const profile = useCallback((): Profile => appState[activeProfile], [appState, activeProfile])
+  const toast = useCallback((msg: string) => sonnerToast(msg), [])
 
   const updateProfile = useCallback((updater: (p: Profile) => Profile) => {
-    setAppState(prev => {
-      const next = { ...prev, [activeProfile]: updater({ ...prev[activeProfile] }) }
+    setProfile(prev => {
+      const next = updater({ ...prev })
       saveToStorage(next)
       return next
     })
-  }, [activeProfile, saveToStorage])
+  }, [saveToStorage])
 
   // ── ONBOARDING ──
   const saveOnboarding = useCallback((ob: Onboarding) => {
@@ -80,7 +76,6 @@ export function useDesignTaste() {
       const images = { ...p.uploadedImages }
       if (imageData) images[id] = imageData
 
-      // Update dimensions from ref
       if (ref.notes) {
         const lower = ref.notes.toLowerCase()
         const negWords = ['hate', 'dislike', 'avoid', "don't", 'never', 'bad', 'ugly', 'wrong']
@@ -99,9 +94,7 @@ export function useDesignTaste() {
       }
       ref.tags.forEach(t => {
         const dim = tagDimMap[t]
-        if (dim && !d[dim].includes(t)) {
-          d[dim] = [d[dim], t].filter(Boolean).join(', ')
-        }
+        if (dim && !d[dim].includes(t)) d[dim] = [d[dim], t].filter(Boolean).join(', ')
       })
 
       return { ...p, references: [newRef, ...p.references], dimensions: d, uploadedImages: images }
@@ -167,15 +160,8 @@ export function useDesignTaste() {
   }, [updateProfile, toast])
 
   // ── SKILL EXPORT ──
-  const buildSkillMD = useCallback((profileType: ProfileType): string => {
-    const p = appState[profileType]
-    const ob = p.onboarding
-    const dims = p.dimensions
-    const refs = p.references
-    const label = profileType === 'team' ? 'Team Design Taste' : 'Personal Design Taste'
-    const scope = profileType === 'team'
-      ? 'This is the shared team taste profile. Apply it to all UI work in this project.'
-      : "This is a personal taste profile. It reflects one developer's design sensibility."
+  const buildSkillMD = useCallback((): string => {
+    const { onboarding: ob, dimensions: dims, references: refs } = profile
 
     const dimLines = DIMENSION_META.map(dm => {
       const val = dims[dm.key]?.trim()
@@ -203,21 +189,20 @@ export function useDesignTaste() {
     if (ob.motion) onboardingLines.push(`- Motion/interaction: ${ob.motion}`)
 
     return `---
-name: design-taste${profileType === 'team' ? '-team' : ''}
+name: design-taste
 description: >
-  ${label} profile. Use this skill whenever building UI, reviewing a design,
+  Personal design taste profile. Use this skill whenever building UI, reviewing a design,
   suggesting visual improvements, or evaluating whether something looks right.
   Trigger on any request involving components, layouts, screens, colors, typography,
-  or design critique. Also trigger when the user says "add a reference" or shares
-  a screenshot or URL of a design. This tells you what good design means to
-  ${profileType === 'team' ? 'this team' : 'this person'} — not generic rules.
+  or design critique. Also trigger when the user shares a screenshot or URL of a design.
+  This tells you what good design means to this person — not generic rules.
 ---
 
-# ${label}
+# Personal Design Taste
 
-${scope}
+This is a personal taste profile. It reflects one developer's design sensibility.
 
-**Your job is not to apply generic design rules. Your job is to see through ${profileType === 'team' ? "this team's" : "this person's"} eyes.**
+**Your job is not to apply generic design rules. Your job is to see through this person's eyes.**
 
 ---
 
@@ -267,12 +252,10 @@ Taste is personal, not universal. Do not correct or normalize this taste toward 
 If the profile contains tensions — name them and use context to resolve them.
 Uncertainty honestly expressed is more useful than false confidence.
 `
-  }, [appState])
+  }, [profile])
 
-  const buildTasteProfileMD = useCallback((profileType: ProfileType): string => {
-    const p = appState[profileType]
-    const dims = p.dimensions
-    const refs = p.references
+  const buildTasteProfileMD = useCallback((): string => {
+    const { dimensions: dims, references: refs } = profile
 
     const dimLines = DIMENSION_META.map(dm => {
       const val = dims[dm.key]?.trim()
@@ -306,13 +289,10 @@ ${refLines}
 
 *(This section should be updated by the agent after each new reference is added.)*
 `
-  }, [appState])
+  }, [profile])
 
   return {
-    activeProfile,
-    setActiveProfile,
     profile,
-    appState,
     saveOnboarding,
     addReference,
     removeReference,

@@ -14,7 +14,6 @@ const TAG_OPTIONS = ['Minimal', 'Dense', 'Editorial', 'Dark', 'Light', 'Serif', 
 interface Props {
   references: Reference[]
   uploadedImages: Record<string, string>
-  isTeam: boolean
   onAdd: (ref: Omit<Reference, 'id'>, imageData?: string) => void
   onRemove: (id: string) => void
   onUpdateNotes: (id: string, notes: string) => void
@@ -39,7 +38,7 @@ async function analyzeImage(imageData: string, name: string): Promise<string> {
   return json.description ?? ''
 }
 
-export default function ReferencesPanel({ references, uploadedImages, isTeam, onAdd, onRemove, onUpdateNotes }: Props) {
+export default function ReferencesPanel({ references, uploadedImages, onAdd, onRemove, onUpdateNotes }: Props) {
   const [url, setUrl] = useState('')
   const [name, setName] = useState('')
   const [notes, setNotes] = useState('')
@@ -214,10 +213,8 @@ export default function ReferencesPanel({ references, uploadedImages, isTeam, on
   return (
     <div>
       <div className="page-header">
-        <h1>
-          References {isTeam && <Badge className="bg-[#1a3a5c] text-[#7eb8d4] hover:bg-[#1a3a5c] font-mono text-[0.65rem] ml-2">● team</Badge>}
-        </h1>
-        <p>Upload screenshots of UI you admire. Each image is automatically analysed for design signals that train your agent.</p>
+        <h1>References</h1>
+        <p>Upload screenshots or paste URLs of UI you admire. Each image is automatically analysed for design signals that train your agent.</p>
       </div>
 
       <div className="references-wrap">

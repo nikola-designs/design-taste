@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { ProfileType } from '@/lib/types'
 
 const NAV = [
   { id: 'onboarding', label: 'Onboarding' },
@@ -10,12 +9,7 @@ const NAV = [
   { id: 'export',     label: 'Export' },
 ]
 
-interface Props {
-  activeProfile: ProfileType
-  onProfile: (p: ProfileType) => void
-}
-
-export default function Header({ activeProfile, onProfile }: Props) {
+export default function Header() {
   const [activeSection, setActiveSection] = useState('')
   const [scrolled, setScrolled] = useState(false)
 
@@ -65,17 +59,6 @@ export default function Header({ activeProfile, onProfile }: Props) {
             </button>
           ))}
         </nav>
-
-        <div className="site-profile-switcher">
-          <button
-            className={`site-profile-btn${activeProfile === 'personal' ? ' active' : ''}`}
-            onClick={() => onProfile('personal')}
-          >Personal</button>
-          <button
-            className={`site-profile-btn${activeProfile === 'team' ? ' active' : ''}`}
-            onClick={() => onProfile('team')}
-          >Team</button>
-        </div>
 
       </div>
     </header>

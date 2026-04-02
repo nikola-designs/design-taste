@@ -3,12 +3,10 @@
 import { useState } from 'react'
 import { Dimensions, DIMENSION_META } from '@/lib/types'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 
 interface Props {
   dimensions: Dimensions
-  isTeam: boolean
   onSave: (dims: Dimensions) => void
   onRebuild: () => void
 }
@@ -25,7 +23,7 @@ const toggleChip = (val: string, chip: string): string => {
     : [...arr, chip].join(', ')
 }
 
-export default function TasteProfilePanel({ dimensions, isTeam, onSave, onRebuild }: Props) {
+export default function TasteProfilePanel({ dimensions, onSave, onRebuild }: Props) {
   const [dims, setDims] = useState<Dimensions>(dimensions)
   const [openKeys, setOpenKeys] = useState<Set<string>>(() => {
     // open all dimensions that already have values
@@ -44,14 +42,7 @@ export default function TasteProfilePanel({ dimensions, isTeam, onSave, onRebuil
   return (
     <div>
       <div className="page-header">
-        <h1>
-          Taste Profile
-          {isTeam && (
-            <Badge className="font-mono text-[0.62rem] ml-2 bg-[#1a3a5c] text-[#7eb8d4] border-0">
-              ● team
-            </Badge>
-          )}
-        </h1>
+        <h1>Taste Profile</h1>
         <p>Select what resonates across each dimension. Your choices are exported as context for your AI agent.</p>
       </div>
 
