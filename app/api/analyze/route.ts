@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
       : `${SYSTEM_PROMPT}\n\nAnalyse this UI screenshot for design taste signals.`
 
     const response = await ai.models.generateContent({
-      model: 'gemini-2.0-flash',
+      model: 'gemini-1.5-flash',
       contents: [
         {
           role: 'user',
