@@ -1,4 +1,40 @@
 @import "tailwindcss";
+@plugin "daisyui";
+
+@plugin "daisyui/theme" {
+  name: "cupcake";
+  default: true;
+  prefersdark: false;
+  color-scheme: "light";
+  --color-base-100: oklch(97.788% 0.004 56.375);
+  --color-base-200: oklch(93.982% 0.007 61.449);
+  --color-base-300: oklch(91.586% 0.006 53.44);
+  --color-base-content: oklch(23.574% 0.066 313.189);
+  --color-primary: oklch(85% 0.138 181.071);
+  --color-primary-content: oklch(43% 0.078 188.216);
+  --color-secondary: oklch(89% 0.061 343.231);
+  --color-secondary-content: oklch(45% 0.187 3.815);
+  --color-accent: oklch(90% 0.076 70.697);
+  --color-accent-content: oklch(47% 0.157 37.304);
+  --color-neutral: oklch(27% 0.006 286.033);
+  --color-neutral-content: oklch(92% 0.004 286.32);
+  --color-info: oklch(68% 0.169 237.323);
+  --color-info-content: oklch(29% 0.066 243.157);
+  --color-success: oklch(69% 0.17 162.48);
+  --color-success-content: oklch(26% 0.051 172.552);
+  --color-warning: oklch(79% 0.184 86.047);
+  --color-warning-content: oklch(28% 0.066 53.813);
+  --color-error: oklch(64% 0.246 16.439);
+  --color-error-content: oklch(27% 0.105 12.094);
+  --radius-selector: 2rem;
+  --radius-field: 2rem;
+  --radius-box: 2rem;
+  --size-selector: 0.28125rem;
+  --size-field: 0.21875rem;
+  --border: 2px;
+  --depth: 1;
+  --noise: 1;
+}
 
 @theme {
   --font-sans: var(--font-sans);
@@ -6,43 +42,45 @@
   --font-serif: var(--font-serif);
 }
 
+/* Bridge cupcake tokens → shadcn semantic tokens */
 @layer base {
   :root {
-    --background: 36 18% 95%;
-    --foreground: 25 10% 7%;
-    --card: 0 0% 100%;
-    --card-foreground: 25 10% 7%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 25 10% 7%;
-    --primary: 12 62% 47%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 33 22% 87%;
-    --secondary-foreground: 25 10% 7%;
-    --muted: 33 22% 87%;
-    --muted-foreground: 27 7% 51%;
-    --accent: 12 37% 82%;
-    --accent-foreground: 25 10% 7%;
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 33 13% 81%;
-    --input: 33 22% 87%;
-    --ring: 12 62% 47%;
-    --radius: 0.625rem;
+    --background: oklch(97.788% 0.004 56.375);   /* base-100: cream */
+    --foreground: oklch(23.574% 0.066 313.189);  /* base-content: dark plum */
+    --card: oklch(97.788% 0.004 56.375);          /* base-100 */
+    --card-foreground: oklch(23.574% 0.066 313.189);
+    --popover: oklch(97.788% 0.004 56.375);
+    --popover-foreground: oklch(23.574% 0.066 313.189);
+    --primary: oklch(85% 0.138 181.071);          /* mint teal */
+    --primary-foreground: oklch(43% 0.078 188.216);
+    --secondary: oklch(89% 0.061 343.231);        /* soft pink */
+    --secondary-foreground: oklch(45% 0.187 3.815);
+    --muted: oklch(93.982% 0.007 61.449);         /* base-200 */
+    --muted-foreground: oklch(50% 0.04 313.189);
+    --accent: oklch(90% 0.076 70.697);            /* peach */
+    --accent-foreground: oklch(47% 0.157 37.304);
+    --destructive: oklch(64% 0.246 16.439);
+    --destructive-foreground: oklch(97% 0.004 56.375);
+    --border: oklch(91.586% 0.006 53.44);         /* base-300 */
+    --input: oklch(93.982% 0.007 61.449);         /* base-200 */
+    --ring: oklch(85% 0.138 181.071);             /* primary */
+    --radius: 2rem;
   }
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --ink: #0f0e0d;
-  --paper: #f5f2ed;
-  --warm: #e8e2d9;
-  --accent-color: #c84b2f;
-  --accent-dim: #e8c4bb;
-  --muted-color: #8a8077;
-  --border-color: #d4cec6;
-  --green: #2d6a4f;
-  --green-dim: #b7d5c8;
+  /* Custom palette updated to cupcake tones */
+  --ink: oklch(27% 0.006 286.033);          /* neutral — sidebar bg */
+  --paper: oklch(97.788% 0.004 56.375);     /* base-100 — page bg */
+  --warm: oklch(93.982% 0.007 61.449);      /* base-200 — input/card bg */
+  --accent-color: oklch(85% 0.138 181.071); /* primary mint — dot/active */
+  --accent-dim: oklch(93% 0.05 181.071);    /* light mint */
+  --muted-color: oklch(50% 0.04 313.189);   /* dimmed plum */
+  --border-color: oklch(91.586% 0.006 53.44); /* base-300 */
+  --green: oklch(49% 0.13 162.48);          /* success-ish */
+  --green-dim: oklch(87% 0.07 162.48);
   --mono: var(--font-mono), monospace;
   --serif: var(--font-serif), serif;
   --sans: var(--font-sans), sans-serif;
@@ -51,7 +89,7 @@
 html { font-size: 16px; }
 body {
   background: var(--paper);
-  color: var(--ink);
+  color: oklch(23.574% 0.066 313.189);
   font-family: var(--sans);
   font-weight: 300;
   line-height: 1.6;
@@ -90,7 +128,7 @@ body {
   font-family: var(--mono);
   font-size: 0.65rem;
   letter-spacing: 0.12em;
-  color: var(--muted-color);
+  color: oklch(55% 0.004 286.32);
   text-transform: uppercase;
   margin-top: 0.3rem;
 }
@@ -101,7 +139,7 @@ body {
   font-size: 0.6rem;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  color: var(--muted-color);
+  color: oklch(55% 0.004 286.32);
   padding: 0 0.5rem;
   margin-bottom: 0.4rem;
 }
@@ -109,12 +147,12 @@ body {
 .nav-btn {
   background: none;
   border: none;
-  color: #c8c2ba;
+  color: oklch(75% 0.004 286.32);
   font-family: var(--sans);
   font-size: 0.85rem;
   font-weight: 400;
   padding: 0.5rem 0.75rem;
-  border-radius: 6px;
+  border-radius: 0.75rem;
   cursor: pointer;
   text-align: left;
   transition: background 0.15s, color 0.15s;
@@ -128,7 +166,7 @@ body {
 .nav-btn .dot {
   width: 6px; height: 6px;
   border-radius: 50%;
-  background: var(--muted-color);
+  background: oklch(55% 0.004 286.32);
   flex-shrink: 0;
   transition: background 0.15s;
 }
@@ -144,7 +182,7 @@ body {
   font-size: 0.6rem;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  color: var(--muted-color);
+  color: oklch(55% 0.004 286.32);
   margin-bottom: 0.5rem;
 }
 .profile-tabs { display: flex; gap: 0.4rem; }

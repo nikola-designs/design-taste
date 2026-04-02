@@ -33,7 +33,12 @@
       "Bash(npx shadcn@latest --version)",
       "Bash(npx shadcn@latest add card badge input textarea separator sonner --yes)",
       "Bash(npm ls:*)",
-      "Bash(/Users/nikolamajkic/Downloads/design-taste-repo/lib/utils.ts:*)"
+      "Bash(/Users/nikolamajkic/Downloads/design-taste-repo/lib/utils.ts:*)",
+      "Bash(vercel ls:*)",
+      "Bash(vercel promote:*)",
+      "Bash(export NVM_DIR=$HOME/.nvm)",
+      "Bash(. $NVM_DIR/nvm.sh)",
+      "Bash(pkill -f \"next dev\")"
     ]
   }
 }
