@@ -34,8 +34,8 @@ async function analyzeImage(imageData: string, name: string): Promise<string> {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ imageData, name }),
   })
-  if (!res.ok) throw new Error('Analysis failed')
   const json = await res.json()
+  if (!res.ok) throw new Error(json.error ?? 'Analysis failed')
   return json.description ?? ''
 }
 
@@ -48,7 +48,7 @@ export default function ReferencesPanel({ references, uploadedImages, isTeam, on
   const [imageName, setImageName] = useState<string | null>(null)
   const [isDragOver, setIsDragOver] = useState(false)
   const [analyzing, setAnalyzing] = useState(false)
-  const [analysisFailed, setAnalysisFailed] = useState(false)
+  const [analysisFailed, setAnalysisFailed] = useState<string | null>(null)
   const [reanalyzing, setReanalyzing] = useState<string | null>(null)
 
   // Batch mode
@@ -74,14 +74,14 @@ export default function ReferencesPanel({ references, uploadedImages, isTeam, on
     setImageName(file.name)
     setBatchItems([])
     setNotes('')
-    setAnalysisFailed(false)
+    setAnalysisFailed(null)
     setAnalyzing(true)
     try {
       const label = name || file.name.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ')
       const description = await analyzeImage(data, label)
       setNotes(description)
-    } catch {
-      setAnalysisFailed(true)
+    } catch (err) {
+      setAnalysisFailed(err instanceof Error ? err.message : 'Analysis failed')
     } finally {
       setAnalyzing(false)
     }
@@ -347,7 +347,7 @@ export default function ReferencesPanel({ references, uploadedImages, isTeam, on
                         <span className="analysis-badge done">✓ AI analysed — edit freely</span>
                       )}
                       {!analyzing && analysisFailed && (
-                        <span className="analysis-badge error">⚠ Analysis failed — check API key or type manually</span>
+                        <span className="analysis-badge error" title={analysisFailed}>⚠ {analysisFailed}</span>
                       )}
                     </div>
                     <Textarea
