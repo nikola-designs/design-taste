@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from '@google/generative-ai'
+import { GoogleGenAI } from '@google/genai'
 import { NextRequest, NextResponse } from 'next/server'
 
 const SYSTEM_PROMPT = `You are a design taste analyst. When shown a UI screenshot, write a concise, opinionated design critique from the perspective of a senior designer who cares deeply about craft.
@@ -27,23 +27,29 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid image data' }, { status: 400 })
     }
 
-    // Strip data URL header → raw base64
     const [header, base64] = imageData.split(',')
     const mimeType = header.match(/data:(image\/[\w+]+)/)?.[1] ?? 'image/jpeg'
 
-    const genAI = new GoogleGenerativeAI(apiKey)
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
+    const ai = new GoogleGenAI({ apiKey })
 
     const prompt = name
       ? `${SYSTEM_PROMPT}\n\nAnalyse this UI screenshot labeled "${name}" for design taste signals.`
       : `${SYSTEM_PROMPT}\n\nAnalyse this UI screenshot for design taste signals.`
 
-    const result = await model.generateContent([
-      prompt,
-      { inlineData: { mimeType, data: base64 } },
-    ])
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.0-flash',
+      contents: [
+        {
+          role: 'user',
+          parts: [
+            { inlineData: { mimeType, data: base64 } },
+            { text: prompt },
+          ],
+        },
+      ],
+    })
 
-    const description = result.response.text().trim()
+    const description = response.text?.trim() ?? ''
     return NextResponse.json({ description })
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err)
