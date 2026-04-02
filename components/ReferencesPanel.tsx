@@ -19,6 +19,25 @@ interface Props {
   onRemove: (id: string) => void
 }
 
+interface BatchItem {
+  data: string
+  name: string
+  analysis: string       // AI-generated description
+  analyzing: boolean     // in-flight
+  error: boolean
+}
+
+async function analyzeImage(imageData: string, name: string): Promise<string> {
+  const res = await fetch('/api/analyze', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ imageData, name }),
+  })
+  if (!res.ok) throw new Error('Analysis failed')
+  const json = await res.json()
+  return json.description ?? ''
+}
+
 export default function ReferencesPanel({ references, uploadedImages, isTeam, onAdd, onRemove }: Props) {
   const [url, setUrl] = useState('')
   const [name, setName] = useState('')
@@ -27,15 +46,131 @@ export default function ReferencesPanel({ references, uploadedImages, isTeam, on
   const [imageData, setImageData] = useState<string | null>(null)
   const [imageName, setImageName] = useState<string | null>(null)
   const [isDragOver, setIsDragOver] = useState(false)
+  const [analyzing, setAnalyzing] = useState(false)
+
+  // Batch mode
+  const [batchItems, setBatchItems] = useState<BatchItem[]>([])
+  const [isAddingBatch, setIsAddingBatch] = useState(false)
+
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const toggleTag = (t: string) =>
     setTags(prev => prev.includes(t) ? prev.filter(x => x !== t) : [...prev, t])
 
-  const readImageFile = (file: File) => {
-    const reader = new FileReader()
-    reader.onload = e => { setImageData(e.target?.result as string); setImageName(file.name) }
-    reader.readAsDataURL(file)
+  const readImageFile = (file: File): Promise<string> =>
+    new Promise(resolve => {
+      const reader = new FileReader()
+      reader.onload = e => resolve(e.target?.result as string)
+      reader.readAsDataURL(file)
+    })
+
+  /** Analyze a single image file, populate notes */
+  const handleSingleFile = async (file: File) => {
+    const data = await readImageFile(file)
+    setImageData(data)
+    setImageName(file.name)
+    setBatchItems([])
+    setNotes('')
+    setAnalyzing(true)
+    try {
+      const label = name || file.name.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ')
+      const description = await analyzeImage(data, label)
+      setNotes(description)
+    } catch {
+      // silently fail — user can type notes manually
+    } finally {
+      setAnalyzing(false)
+    }
+  }
+
+  /** Load + analyze multiple files as batch items */
+  const handleBatchFiles = async (files: File[]) => {
+    const imageFiles = files.filter(f => f.type.startsWith('image/'))
+    if (imageFiles.length === 0) return
+
+    // Seed batch with placeholders immediately
+    const placeholders: BatchItem[] = imageFiles.map(f => ({
+      data: '',
+      name: f.name,
+      analysis: '',
+      analyzing: true,
+      error: false,
+    }))
+    setBatchItems(prev => [...prev, ...placeholders])
+
+    // Read + analyze each file
+    imageFiles.forEach(async (file, idx) => {
+      const offset = batchItems.length + idx
+      try {
+        const data = await readImageFile(file)
+        setBatchItems(prev => prev.map((it, i) => i === offset ? { ...it, data } : it))
+        const label = file.name.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ')
+        const analysis = await analyzeImage(data, label)
+        setBatchItems(prev => prev.map((it, i) =>
+          i === offset ? { ...it, analysis, analyzing: false } : it
+        ))
+      } catch {
+        setBatchItems(prev => prev.map((it, i) =>
+          i === offset ? { ...it, analyzing: false, error: true } : it
+        ))
+      }
+    })
+  }
+
+  const handleFiles = async (files: FileList | File[]) => {
+    const arr = Array.from(files).filter(f => f.type.startsWith('image/'))
+    if (arr.length === 0) return
+
+    if (arr.length === 1 && batchItems.length === 0) {
+      await handleSingleFile(arr[0])
+    } else {
+      // Merge into batch (convert existing single image if needed)
+      if (imageData && batchItems.length === 0) {
+        const existingName = imageName || 'image'
+        const label = existingName.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ')
+        setBatchItems([{
+          data: imageData,
+          name: existingName,
+          analysis: notes,
+          analyzing: false,
+          error: false,
+        }])
+        setImageData(null)
+        setImageName(null)
+        setNotes('')
+      }
+      await handleBatchFiles(arr)
+    }
+  }
+
+  const removeBatchItem = (idx: number) => {
+    setBatchItems(prev => {
+      const next = prev.filter((_, i) => i !== idx)
+      if (next.length === 1 && !next[0].analyzing) {
+        // Revert to single-file mode
+        setImageData(next[0].data)
+        setImageName(next[0].name)
+        setNotes(next[0].analysis)
+        return []
+      }
+      return next
+    })
+  }
+
+  const handleAddBatch = async () => {
+    if (batchItems.length === 0) return
+    setIsAddingBatch(true)
+    for (const item of batchItems) {
+      if (!item.data) continue
+      const label = item.name.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ')
+      onAdd(
+        { url: '', name: label, notes: item.analysis, tags: [], hasImage: true },
+        item.data
+      )
+      await new Promise(r => setTimeout(r, 5))
+    }
+    setBatchItems([])
+    setIsAddingBatch(false)
   }
 
   const handleAdd = () => {
@@ -44,14 +179,20 @@ export default function ReferencesPanel({ references, uploadedImages, isTeam, on
       { url: url.trim(), name: name.trim() || url.trim() || 'Reference', notes: notes.trim(), tags, hasImage: !!imageData },
       imageData ?? undefined
     )
-    setUrl(''); setName(''); setNotes(''); setTags([]); setImageData(null); setImageName(null)
+    setUrl(''); setName(''); setNotes(''); setTags([])
+    setImageData(null); setImageName(null)
     if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
   const clearForm = () => {
-    setUrl(''); setName(''); setNotes(''); setTags([]); setImageData(null); setImageName(null)
+    setUrl(''); setName(''); setNotes(''); setTags([])
+    setImageData(null); setImageName(null)
+    setBatchItems([])
     if (fileInputRef.current) fileInputRef.current.value = ''
   }
+
+  const isBatchMode = batchItems.length >= 2
+  const batchStillAnalyzing = batchItems.some(it => it.analyzing)
 
   return (
     <div>
@@ -59,92 +200,211 @@ export default function ReferencesPanel({ references, uploadedImages, isTeam, on
         <h1>
           References {isTeam && <Badge className="bg-[#1a3a5c] text-[#7eb8d4] hover:bg-[#1a3a5c] font-mono text-[0.65rem] ml-2">● team</Badge>}
         </h1>
-        <p>Share URLs or screenshots of designs that speak to you. Each one trains the agent&apos;s understanding of your taste.</p>
+        <p>Upload screenshots of UI you admire. Each image is automatically analysed for design signals that train your agent.</p>
       </div>
 
       <div className="references-wrap">
         <Card className="mb-8">
-          <CardContent className="pt-6">
+          <CardContent className="pt-8">
             <div className="grid grid-cols-2 gap-4">
 
-              <div>
-                <div className="field-label">URL</div>
-                <Input type="url" value={url} onChange={e => setUrl(e.target.value)} placeholder="https://linear.app" />
-              </div>
-              <div>
-                <div className="field-label">Name / Label</div>
-                <Input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Linear" />
-              </div>
+              {/* Single-file form fields */}
+              {!isBatchMode && (
+                <>
+                  <div>
+                    <div className="field-label">URL</div>
+                    <Input type="url" value={url} onChange={e => setUrl(e.target.value)} placeholder="https://linear.app" />
+                  </div>
+                  <div>
+                    <div className="field-label">Name / Label</div>
+                    <Input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Linear" />
+                  </div>
+                </>
+              )}
 
+              {/* Upload zone */}
               <div className="col-span-2">
-                <div className="field-label">Screenshot (optional)</div>
-                <div
-                  className={cn(
-                    'border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-all bg-[var(--warm)]',
-                    isDragOver ? 'border-[var(--accent-color)] bg-[var(--accent-dim)]' : 'border-[var(--border-color)]',
-                    'hover:border-[var(--accent-color)] hover:bg-[var(--accent-dim)]'
-                  )}
-                  onClick={() => fileInputRef.current?.click()}
-                  onDragOver={e => { e.preventDefault(); setIsDragOver(true) }}
-                  onDragLeave={() => setIsDragOver(false)}
-                  onDrop={e => {
-                    e.preventDefault(); setIsDragOver(false)
-                    const file = e.dataTransfer.files[0]
-                    if (file?.type.startsWith('image/')) readImageFile(file)
-                  }}
-                >
-                  <input ref={fileInputRef} type="file" accept="image/*" className="hidden"
-                    onChange={e => { const f = e.target.files?.[0]; if (f) readImageFile(f) }} />
-                  {imageData ? (
-                    <div>
-                      <img src={imageData} alt="" className="max-h-[120px] rounded max-w-full mx-auto" />
-                      <div className="text-xs text-muted-foreground mt-2">{imageName}</div>
-                    </div>
-                  ) : (
-                    <div className="text-sm text-muted-foreground">
-                      <strong className="text-foreground">Click to upload</strong> or drag & drop<br />
-                      PNG, JPG, WebP — any screenshot of UI you admire
-                    </div>
-                  )}
+                <div className="field-label">
+                  {isBatchMode
+                    ? `Screenshots — ${batchItems.length} queued`
+                    : 'Screenshot (optional)'}
                 </div>
+
+                {isBatchMode ? (
+                  <div>
+                    <div className="batch-grid">
+                      {batchItems.map((item, idx) => (
+                        <div key={idx} className="batch-thumb">
+                          {item.data ? (
+                            <img src={item.data} alt="" className="batch-thumb-img" />
+                          ) : (
+                            <div className="batch-thumb-img flex items-center justify-center bg-[var(--warm)] text-[var(--muted-color)] text-xs">
+                              Loading…
+                            </div>
+                          )}
+                          <div className="batch-thumb-footer">
+                            <div className="batch-thumb-name">
+                              {item.name.replace(/\.[^.]+$/, '')}
+                            </div>
+                            {item.analyzing ? (
+                              <div className="batch-thumb-status analyzing">✦ Analysing…</div>
+                            ) : item.error ? (
+                              <div className="batch-thumb-status error">⚠ No analysis</div>
+                            ) : item.analysis ? (
+                              <div className="batch-thumb-status done">✓ Analysed</div>
+                            ) : null}
+                          </div>
+                          <button
+                            className="batch-thumb-remove"
+                            onClick={() => removeBatchItem(idx)}
+                            title="Remove"
+                          >✕</button>
+                        </div>
+                      ))}
+                      {/* Add more tile */}
+                      <div
+                        className="batch-add-more"
+                        onClick={() => fileInputRef.current?.click()}
+                      >
+                        <span className="text-2xl text-[var(--muted-color)]">+</span>
+                        <span className="text-xs text-[var(--muted-color)] mt-1">Add more</span>
+                      </div>
+                    </div>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      className="hidden"
+                      onChange={e => { if (e.target.files) handleFiles(e.target.files) }}
+                    />
+                  </div>
+                ) : (
+                  <div
+                    className={cn(
+                      'border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-all bg-[var(--warm)]',
+                      isDragOver ? 'border-[var(--teal)] bg-[var(--teal-dim)]' : 'border-[var(--border-color)]',
+                      'hover:border-[var(--teal)] hover:bg-[var(--teal-dim)]'
+                    )}
+                    onClick={() => fileInputRef.current?.click()}
+                    onDragOver={e => { e.preventDefault(); setIsDragOver(true) }}
+                    onDragLeave={() => setIsDragOver(false)}
+                    onDrop={e => {
+                      e.preventDefault(); setIsDragOver(false)
+                      if (e.dataTransfer.files) handleFiles(e.dataTransfer.files)
+                    }}
+                  >
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      className="hidden"
+                      onChange={e => { if (e.target.files) handleFiles(e.target.files) }}
+                    />
+                    {imageData ? (
+                      <div>
+                        <img src={imageData} alt="" className="max-h-[140px] rounded max-w-full mx-auto" />
+                        <div className="text-xs text-muted-foreground mt-2">{imageName}</div>
+                      </div>
+                    ) : (
+                      <div className="text-sm text-muted-foreground">
+                        <strong className="text-foreground">Click to upload</strong> or drag & drop<br />
+                        PNG, JPG, WebP — select multiple to batch import
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
-              <div className="col-span-2">
-                <div className="field-label">What draws you to this? What does it do right?</div>
-                <Textarea value={notes} onChange={e => setNotes(e.target.value)}
-                  placeholder="The spacing is exceptional. Every element feels considered..." />
-              </div>
+              {/* Single-file: notes field (auto-filled by AI analysis) */}
+              {!isBatchMode && (
+                <>
+                  <div className="col-span-2">
+                    <div className="field-label flex items-center gap-2">
+                      Design analysis
+                      {analyzing && (
+                        <span className="analysis-badge analyzing">✦ Analysing image…</span>
+                      )}
+                      {!analyzing && notes && imageData && (
+                        <span className="analysis-badge done">✓ AI analysed — edit freely</span>
+                      )}
+                    </div>
+                    <Textarea
+                      value={notes}
+                      onChange={e => setNotes(e.target.value)}
+                      placeholder={
+                        imageData
+                          ? analyzing
+                            ? 'Analysing your screenshot…'
+                            : 'Analysis will appear here…'
+                          : 'What draws you to this? Or upload an image for automatic analysis.'
+                      }
+                      disabled={analyzing}
+                      className={analyzing ? 'opacity-60' : ''}
+                    />
+                  </div>
 
-              <div className="col-span-2">
-                <div className="field-label">Taste signals (select all that apply)</div>
-                <div className="flex flex-wrap gap-1.5 mt-1">
-                  {TAG_OPTIONS.map(t => (
-                    <Badge
-                      key={t}
-                      variant={tags.includes(t) ? 'default' : 'outline'}
-                      className="cursor-pointer select-none rounded-full px-3 py-1 text-[0.8rem] font-normal"
-                      onClick={() => toggleTag(t)}
+                  <div className="col-span-2">
+                    <div className="field-label">Taste signals (select all that apply)</div>
+                    <div className="flex flex-wrap gap-1.5 mt-1">
+                      {TAG_OPTIONS.map(t => (
+                        <Badge
+                          key={t}
+                          variant={tags.includes(t) ? 'default' : 'outline'}
+                          className="cursor-pointer select-none rounded-full px-3 py-1 text-[0.8rem] font-normal"
+                          onClick={() => toggleTag(t)}
+                        >
+                          {t}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* Action buttons */}
+              <div className="col-span-2 flex gap-3 items-center flex-wrap">
+                {isBatchMode ? (
+                  <>
+                    <Button
+                      size="lg"
+                      onClick={handleAddBatch}
+                      disabled={isAddingBatch || batchStillAnalyzing}
                     >
-                      {t}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-
-              <div className="col-span-2 flex gap-3">
-                <Button onClick={handleAdd}>Add reference</Button>
-                <Button variant="outline" onClick={clearForm}>Clear</Button>
+                      {isAddingBatch
+                        ? 'Adding…'
+                        : batchStillAnalyzing
+                          ? `Analysing ${batchItems.filter(i => i.analyzing).length} image${batchItems.filter(i => i.analyzing).length !== 1 ? 's' : ''}…`
+                          : `Add ${batchItems.length} references`}
+                    </Button>
+                    <Button size="lg" variant="outline" onClick={clearForm}>Cancel</Button>
+                    {!batchStillAnalyzing && (
+                      <span className="text-xs text-[var(--muted-color)]">
+                        Each image gets its own AI-written analysis in the skill export
+                      </span>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <Button size="lg" onClick={handleAdd} disabled={analyzing}>
+                      Add reference
+                    </Button>
+                    <Button size="lg" variant="outline" onClick={clearForm}>Clear</Button>
+                  </>
+                )}
               </div>
 
             </div>
           </CardContent>
         </Card>
 
+        {/* Reference list */}
         <div className="flex flex-col gap-4">
           {references.length === 0 ? (
             <div className="empty-state">
               <div className="empty-icon">🖼</div>
-              <p>No references yet. Add a URL or screenshot of a design you admire to start building your taste profile.</p>
+              <p>No references yet. Upload a screenshot and Claude will analyse its design signals for your skill file.</p>
             </div>
           ) : (
             references.map(ref => {
@@ -162,7 +422,7 @@ export default function ReferencesPanel({ references, uploadedImages, isTeam, on
                     <div className="flex flex-col gap-1">
                       <div className="font-medium text-sm">{ref.name}</div>
                       {ref.url && <div className="font-mono text-[0.7rem] text-muted-foreground">{ref.url}</div>}
-                      {ref.notes && <div className="text-[0.8rem] text-muted-foreground italic">&ldquo;{ref.notes}&rdquo;</div>}
+                      {ref.notes && <div className="text-[0.8rem] text-muted-foreground italic leading-relaxed">&ldquo;{ref.notes}&rdquo;</div>}
                       {ref.tags?.length > 0 && (
                         <div className="flex gap-1 flex-wrap mt-1">
                           {ref.tags.map(t => (

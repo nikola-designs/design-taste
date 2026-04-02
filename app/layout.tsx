@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { DM_Serif_Display, DM_Mono, DM_Sans } from 'next/font/google'
+import { Inter, DM_Serif_Display, DM_Mono } from 'next/font/google'
 import { Toaster } from '@/components/ui/sonner'
 import './globals.css'
 
@@ -16,8 +16,8 @@ const dmMono = DM_Mono({
   variable: '--font-mono',
 })
 
-const dmSans = DM_Sans({
-  weight: ['300', '400', '500'],
+const inter = Inter({
+  weight: ['300', '400', '500', '600'],
   subsets: ['latin'],
   variable: '--font-sans',
 })
@@ -33,7 +33,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${dmSerif.variable} ${dmMono.variable} ${dmSans.variable}`}>
+    <html lang="en" className={`${dmSerif.variable} ${dmMono.variable} ${inter.variable}`}>
       <body>
         {children}
         <Toaster position="bottom-right" />

@@ -3,9 +3,7 @@
 import { useState } from 'react'
 import { Dimensions, DIMENSION_META } from '@/lib/types'
 import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
 
 interface Props {
@@ -15,72 +13,127 @@ interface Props {
   onRebuild: () => void
 }
 
+/** Parse a comma-joined string → string[] */
+const toArr = (val: string) =>
+  val.split(',').map(s => s.trim()).filter(Boolean)
+
+/** Toggle one chip in the comma-string and return the new string */
+const toggleChip = (val: string, chip: string): string => {
+  const arr = toArr(val)
+  return arr.includes(chip)
+    ? arr.filter(c => c !== chip).join(', ')
+    : [...arr, chip].join(', ')
+}
+
 export default function TasteProfilePanel({ dimensions, isTeam, onSave, onRebuild }: Props) {
   const [dims, setDims] = useState<Dimensions>(dimensions)
   const [openKeys, setOpenKeys] = useState<Set<string>>(() => {
+    // open all dimensions that already have values
     const s = new Set<string>()
     DIMENSION_META.forEach(dm => { if (dimensions[dm.key]?.trim()) s.add(dm.key) })
     return s
   })
 
-  const toggleKey = (key: string) => {
+  const toggle = (key: string) =>
     setOpenKeys(prev => {
       const next = new Set(prev)
       next.has(key) ? next.delete(key) : next.add(key)
       return next
     })
-  }
 
   return (
     <div>
       <div className="page-header">
         <h1>
-          Taste Profile {isTeam && <Badge className="bg-[#1a3a5c] text-[#7eb8d4] hover:bg-[#1a3a5c] font-mono text-[0.65rem] ml-2">● team</Badge>}
+          Taste Profile
+          {isTeam && (
+            <Badge className="font-mono text-[0.62rem] ml-2 bg-[#1a3a5c] text-[#7eb8d4] border-0">
+              ● team
+            </Badge>
+          )}
         </h1>
-        <p>Your taste expressed across eight dimensions. Edit directly, or let it grow from your references.</p>
+        <p>Select what resonates across each dimension. Your choices are exported as context for your AI agent.</p>
       </div>
+
       <div className="profile-wrap">
-        <div>
+
+        <div className="flex flex-col gap-3">
           {DIMENSION_META.map(dm => {
             const val = dims[dm.key] || ''
-            const isFilled = val.trim().length > 0
+            const selected = toArr(val)
+            const count = selected.length
             const isOpen = openKeys.has(dm.key)
+
             return (
-              <Card key={dm.key} className="mb-3 overflow-hidden">
+              <div
+                key={dm.key}
+                className="card bg-base-100 shadow-sm overflow-hidden"
+              >
+                {/* Row header — click to expand */}
                 <div
                   className={cn(
-                    'flex items-center justify-between px-5 py-4 cursor-pointer transition-colors',
-                    'hover:bg-[var(--warm)]'
+                    'flex items-center justify-between px-5 py-4 cursor-pointer select-none transition-colors',
+                    isOpen ? 'bg-base-200/60' : 'hover:bg-base-200/40'
                   )}
-                  onClick={() => toggleKey(dm.key)}
+                  onClick={() => toggle(dm.key)}
                 >
-                  <div className="flex items-center gap-3 font-medium text-sm">
-                    <span>{dm.icon}</span>
+                  <div className="flex items-center gap-2.5 text-sm font-medium">
+                    <span className="text-base leading-none opacity-70">{dm.icon}</span>
                     {dm.label}
                   </div>
-                  {isFilled
-                    ? <Badge variant="outline" className="font-mono text-[0.65rem] text-[var(--green)] bg-[var(--green-dim)] border-transparent">✓ filled</Badge>
-                    : <span className="font-mono text-[0.65rem] text-muted-foreground">empty</span>}
+                  <div className="flex items-center gap-2">
+                    {count > 0 ? (
+                      <span className="text-[0.68rem] font-semibold text-[var(--green)] bg-[var(--green-dim)] px-2 py-0.5 rounded-full">
+                        ✓ {count} selected
+                      </span>
+                    ) : (
+                      <span className="text-[0.68rem] text-base-content/40 font-medium">empty</span>
+                    )}
+                    <span className={cn(
+                      'text-base-content/30 text-xs transition-transform duration-200',
+                      isOpen ? 'rotate-180' : ''
+                    )}>▾</span>
+                  </div>
                 </div>
+
+                {/* Expanded chip grid */}
                 {isOpen && (
-                  <div className="px-5 pb-5">
-                    <div className="text-xs text-muted-foreground mb-2">{dm.hint}</div>
-                    <Textarea
-                      value={val}
-                      onChange={e => setDims(prev => ({ ...prev, [dm.key]: e.target.value }))}
-                      placeholder="Describe your taste in this dimension..."
-                      className="min-h-[70px]"
-                    />
+                  <div className="px-5 pb-5 pt-3">
+                    <p className="text-xs text-base-content/50 mb-3">{dm.hint}</p>
+                    <div className="flex flex-wrap gap-2">
+                      {dm.chips.map(chip => {
+                        const active = selected.includes(chip)
+                        return (
+                          <button
+                            key={chip}
+                            onClick={() =>
+                              setDims(prev => ({
+                                ...prev,
+                                [dm.key]: toggleChip(prev[dm.key] || '', chip),
+                              }))
+                            }
+                            className={cn(
+                              'chip-btn',
+                              active ? 'chip-btn-active' : 'chip-btn-idle'
+                            )}
+                          >
+                            {chip}
+                          </button>
+                        )
+                      })}
+                    </div>
                   </div>
                 )}
-              </Card>
+              </div>
             )
           })}
         </div>
+
         <div className="flex gap-3 mt-6">
-          <Button onClick={() => onSave(dims)}>Save profile</Button>
-          <Button variant="secondary" onClick={onRebuild}>↺ Rebuild from references</Button>
+          <Button size="lg" onClick={() => onSave(dims)}>Save profile</Button>
+          <Button size="lg" variant="secondary" onClick={onRebuild}>↺ Rebuild from references</Button>
         </div>
+
       </div>
     </div>
   )

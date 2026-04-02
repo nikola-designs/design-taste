@@ -48,7 +48,7 @@ export default function ExportPanel({ buildSkillMD, buildTasteProfileMD }: Props
       <div className="export-wrap">
 
         <Card className="mb-4">
-          <CardContent className="pt-6 flex gap-5 items-start">
+          <CardContent className="pt-8 flex gap-5 items-start">
             <div className="text-2xl flex-shrink-0 mt-0.5">👤</div>
             <div className="flex-1">
               <div className="font-medium mb-1">Personal skill</div>
@@ -56,8 +56,8 @@ export default function ExportPanel({ buildSkillMD, buildTasteProfileMD }: Props
                 Your individual taste profile. Install globally at <code>~/.claude/skills/</code> so it&apos;s available across all your projects.
               </div>
               <div className="flex gap-2 flex-wrap">
-                <Button onClick={() => exportSkill('personal')}>↓ Download personal.skill</Button>
-                <Button variant="outline" onClick={() => togglePreview('personal')}>
+                <Button size="lg" onClick={() => exportSkill('personal')}>↓ Download personal.skill</Button>
+                <Button size="lg" variant="outline" onClick={() => togglePreview('personal')}>
                   {previewVisible['personal'] ? 'Hide preview' : 'Preview'}
                 </Button>
               </div>
@@ -69,7 +69,7 @@ export default function ExportPanel({ buildSkillMD, buildTasteProfileMD }: Props
         </Card>
 
         <Card className="mb-4">
-          <CardContent className="pt-6 flex gap-5 items-start">
+          <CardContent className="pt-8 flex gap-5 items-start">
             <div className="text-2xl flex-shrink-0 mt-0.5">👥</div>
             <div className="flex-1">
               <div className="font-medium mb-1 flex items-center gap-2">
@@ -80,8 +80,8 @@ export default function ExportPanel({ buildSkillMD, buildTasteProfileMD }: Props
                 A shared taste profile for your whole team. Commit to your repo at <code>.claude/skills/design-taste/</code> so everyone inherits the same design sensibility.
               </div>
               <div className="flex gap-2 flex-wrap">
-                <Button onClick={() => exportSkill('team')}>↓ Download team.skill</Button>
-                <Button variant="outline" onClick={() => togglePreview('team')}>
+                <Button size="lg" onClick={() => exportSkill('team')}>↓ Download team.skill</Button>
+                <Button size="lg" variant="outline" onClick={() => togglePreview('team')}>
                   {previewVisible['team'] ? 'Hide preview' : 'Preview'}
                 </Button>
               </div>
@@ -95,7 +95,7 @@ export default function ExportPanel({ buildSkillMD, buildTasteProfileMD }: Props
         <Separator className="my-8" />
 
         <Card>
-          <CardContent className="pt-6">
+          <CardContent className="pt-8">
             <div className="font-medium mb-3 text-sm">Installing in Claude Code</div>
             <div className="font-mono text-[0.72rem] leading-loose text-muted-foreground">
               <span className="text-[var(--accent-color)]"># Personal (global, all projects)</span><br />

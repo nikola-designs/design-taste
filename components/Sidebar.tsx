@@ -1,21 +1,46 @@
 'use client'
 
-import { Panel, ProfileType } from '@/lib/types'
+import { useState, useEffect } from 'react'
+import { ProfileType } from '@/lib/types'
 
 interface Props {
-  activePanel: Panel
   activeProfile: ProfileType
-  onPanel: (p: Panel) => void
   onProfile: (p: ProfileType) => void
 }
 
 const NAV = [
-  { id: 'onboarding' as Panel, label: 'Onboarding' },
-  { id: 'references' as Panel, label: 'References' },
-  { id: 'profile' as Panel, label: 'Taste Profile' },
+  { id: 'onboarding', label: 'Onboarding',   section: 'build' },
+  { id: 'references', label: 'References',   section: 'build' },
+  { id: 'profile',    label: 'Taste Profile', section: 'build' },
+  { id: 'export',     label: 'Export Skill',  section: 'output' },
 ]
 
-export default function Sidebar({ activePanel, activeProfile, onPanel, onProfile }: Props) {
+export default function Sidebar({ activeProfile, onProfile }: Props) {
+  const [activeSection, setActiveSection] = useState('onboarding')
+
+  useEffect(() => {
+    const ids = NAV.map(n => n.id)
+    const sections = ids.map(id => document.getElementById(id)).filter(Boolean) as HTMLElement[]
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        // Pick the topmost intersecting section
+        const visible = entries
+          .filter(e => e.isIntersecting)
+          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)
+        if (visible.length > 0) setActiveSection(visible[0].target.id)
+      },
+      { rootMargin: '-10% 0px -60% 0px', threshold: 0 }
+    )
+
+    sections.forEach(s => observer.observe(s))
+    return () => observer.disconnect()
+  }, [])
+
+  const scrollTo = (id: string) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
   return (
     <aside className="sidebar">
       <div className="logo">
@@ -25,11 +50,11 @@ export default function Sidebar({ activePanel, activeProfile, onPanel, onProfile
 
       <nav className="nav-section">
         <div className="nav-label">Build</div>
-        {NAV.map(item => (
+        {NAV.filter(n => n.section === 'build').map(item => (
           <button
             key={item.id}
-            className={`nav-btn${activePanel === item.id ? ' active' : ''}`}
-            onClick={() => onPanel(item.id)}
+            className={`nav-btn${activeSection === item.id ? ' active' : ''}`}
+            onClick={() => scrollTo(item.id)}
           >
             <span className="dot" />
             {item.label}
@@ -39,13 +64,16 @@ export default function Sidebar({ activePanel, activeProfile, onPanel, onProfile
 
       <nav className="nav-section">
         <div className="nav-label">Output</div>
-        <button
-          className={`nav-btn${activePanel === 'export' ? ' active' : ''}`}
-          onClick={() => onPanel('export')}
-        >
-          <span className="dot" />
-          Export Skill
-        </button>
+        {NAV.filter(n => n.section === 'output').map(item => (
+          <button
+            key={item.id}
+            className={`nav-btn${activeSection === item.id ? ' active' : ''}`}
+            onClick={() => scrollTo(item.id)}
+          >
+            <span className="dot" />
+            {item.label}
+          </button>
+        ))}
       </nav>
 
       <div className="profile-switcher">
@@ -54,15 +82,11 @@ export default function Sidebar({ activePanel, activeProfile, onPanel, onProfile
           <button
             className={`profile-tab${activeProfile === 'personal' ? ' active' : ''}`}
             onClick={() => onProfile('personal')}
-          >
-            Personal
-          </button>
+          >Personal</button>
           <button
             className={`profile-tab${activeProfile === 'team' ? ' active' : ''}`}
             onClick={() => onProfile('team')}
-          >
-            Team
-          </button>
+          >Team</button>
         </div>
       </div>
     </aside>

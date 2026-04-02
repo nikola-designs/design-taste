@@ -1,16 +1,14 @@
 'use client'
 
-import { useState } from 'react'
-import { Panel } from '@/lib/types'
 import { useDesignTaste } from '@/lib/useDesignTaste'
-import Sidebar from '@/components/Sidebar'
+import Header from '@/components/Header'
+import Hero from '@/components/Hero'
 import OnboardingPanel from '@/components/OnboardingPanel'
 import ReferencesPanel from '@/components/ReferencesPanel'
 import TasteProfilePanel from '@/components/TasteProfilePanel'
 import ExportPanel from '@/components/ExportPanel'
 
 export default function Home() {
-  const [activePanel, setActivePanel] = useState<Panel>('onboarding')
   const {
     activeProfile,
     setActiveProfile,
@@ -27,29 +25,32 @@ export default function Home() {
   const p = profile()
   const isTeam = activeProfile === 'team'
 
-  return (
-    <div className="shell">
-      <Sidebar
-        activePanel={activePanel}
-        activeProfile={activeProfile}
-        onPanel={setActivePanel}
-        onProfile={setActiveProfile}
-      />
+  const scrollTo = (id: string) =>
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 
-      <main className="main">
-        {activePanel === 'onboarding' && (
+  return (
+    <>
+      <Header activeProfile={activeProfile} onProfile={setActiveProfile} />
+
+      <main className="site-main">
+
+        <Hero />
+
+        <section id="onboarding" className="page-section">
           <OnboardingPanel
             key={activeProfile}
             initial={p.onboarding}
             onSave={(ob) => {
               saveOnboarding(ob)
-              setActivePanel('references')
+              setTimeout(() => scrollTo('references'), 80)
             }}
             isTeam={isTeam}
           />
-        )}
+        </section>
 
-        {activePanel === 'references' && (
+        <div className="section-divider" />
+
+        <section id="references" className="page-section">
           <ReferencesPanel
             key={activeProfile}
             references={p.references}
@@ -58,9 +59,11 @@ export default function Home() {
             onAdd={addReference}
             onRemove={removeReference}
           />
-        )}
+        </section>
 
-        {activePanel === 'profile' && (
+        <div className="section-divider" />
+
+        <section id="profile" className="page-section">
           <TasteProfilePanel
             key={`${activeProfile}-${JSON.stringify(p.dimensions)}`}
             dimensions={p.dimensions}
@@ -68,15 +71,23 @@ export default function Home() {
             onSave={saveDimensions}
             onRebuild={rebuildFromRefs}
           />
-        )}
+        </section>
 
-        {activePanel === 'export' && (
+        <div className="section-divider" />
+
+        <section id="export" className="page-section">
           <ExportPanel
             buildSkillMD={buildSkillMD}
             buildTasteProfileMD={buildTasteProfileMD}
           />
-        )}
+        </section>
+
+        <footer className="site-footer">
+          <span>Design Taste · Skill Builder</span>
+          <span>Saves locally · No account needed</span>
+        </footer>
+
       </main>
-    </div>
+    </>
   )
 }
